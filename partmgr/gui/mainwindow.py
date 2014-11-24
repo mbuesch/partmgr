@@ -34,21 +34,34 @@ from partmgr.gui.util import *
 from partmgr.core.database import *
 
 
+class _RightWidget(QWidget):
+	def __init__(self, subWidgets, parent=None):
+		QWidget.__init__(self, parent)
+		self.setLayout(QVBoxLayout())
+		self.layout().setContentsMargins(QMargins(10, 0, 5, 0))
+		for widget in subWidgets:
+			self.layout().addWidget(widget)
+		self.layout().addStretch(1)
+
 class PartMgrMainWidget(QWidget):
 	def __init__(self, db, parent=None):
 		QWidget.__init__(self, parent)
 		self.setLayout(QGridLayout(self))
 		self.db = db
 
+		self.splitter = QSplitter(self, Qt.Horizontal)
+		self.layout().addWidget(self.splitter, 0, 0)
+
 		self.tree = Tree(db, self)
 		self.tree.setMinimumWidth(150)
-		self.layout().addWidget(self.tree, 0, 0, 2, 1)
+		self.splitter.addWidget(self.tree)
 
 		self.stock = StockItemWidget(self)
-		self.layout().addWidget(self.stock, 0, 1, 1, 1)
-
 		self.editEnable = QCheckBox("Edit", self)
-		self.layout().addWidget(self.editEnable, 1, 1, 1, 1)
+
+		self.rightWidget = _RightWidget((self.stock, self.editEnable),
+						self)
+		self.splitter.addWidget(self.rightWidget)
 
 		self.tree.itemChanged.connect(self.itemChanged)
 		self.editEnable.stateChanged.connect(self.__editChanged)
@@ -135,6 +148,8 @@ class PartMgrMainWindow(QMainWindow):
 
 		self.__enableDbMenus(False)
 		self.updateTitle()
+
+		self.resize(QSize(1000, 470))
 
 	def __enableDbMenus(self, enabled):
 		self.dbMenu.setEnabled(enabled)

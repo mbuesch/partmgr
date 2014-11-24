@@ -31,6 +31,7 @@ class StockItemWidget(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self, parent)
 		self.setLayout(QGridLayout(self))
+		self.layout().setContentsMargins(QMargins())
 
 		leftLayout = QGridLayout()
 		rightLayout = QGridLayout()

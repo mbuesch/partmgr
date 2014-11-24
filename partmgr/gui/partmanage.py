@@ -34,12 +34,12 @@ class PartManageDialog(AbstractEntityManageDialog):
 
 		self.nameLabel.setText("Part name:")
 
-	def update(self, selectPart=None):
-		AbstractEntityManageDialog.update(
+	def updateData(self, selectPart=None):
+		AbstractEntityManageDialog.updateData(
 			self, self.db.getParts(),
 			selectPart)
 
 	def newEntity(self):
 		newPart = Part("Unnamed", "", db=self.db)
 		self.db.modifyPart(newPart)
-		self.update(newPart)
+		self.updateData(newPart)

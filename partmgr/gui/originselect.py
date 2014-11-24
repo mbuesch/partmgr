@@ -87,7 +87,7 @@ class OneOriginSelectWidget(ItemSelectWidget):
 			itemSpecificWidget = self.originWidget)
 
 		self.origin = origin
-		self.update(origin.db.getSuppliers(),
+		self.updateData(origin.db.getSuppliers(),
 			    origin.getSupplier())
 
 		self.selectionChanged.connect(self.__supplierSelChanged)
@@ -103,7 +103,7 @@ class OneOriginSelectWidget(ItemSelectWidget):
 	def actionButtonPressed(self):
 		self.origin.delete()
 		self.selectionChanged.emit(None)
-		self.parent().update()
+		self.parent().updateData()
 
 	def __supplierSelChanged(self, supplier):
 		self.origin.setSupplier(supplier)
@@ -122,7 +122,7 @@ class OriginsSelectWidget(GroupSelectWidget):
 					   "Add new origin")
 		self.currentStockItem = None
 
-	def update(self, stockItem=None):
+	def updateData(self, stockItem=None):
 		if not stockItem:
 			stockItem = self.currentStockItem
 		self.clear()
@@ -148,4 +148,4 @@ class OriginsSelectWidget(GroupSelectWidget):
 			price = 0.0
 		)
 		stockItem.db.modifyOrigin(origin)
-		self.update(stockItem)
+		self.updateData(stockItem)

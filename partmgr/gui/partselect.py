@@ -30,12 +30,12 @@ class PartSelectWidget(ItemSelectWidget):
 			actionButtonLabel = "Edit")
 		self.db = None
 
-	def update(self, db, selected=None):
+	def updateData(self, db, selected=None):
 		self.db = db
-		ItemSelectWidget.update(self, db.getParts(), selected)
+		ItemSelectWidget.updateData(self, db.getParts(), selected)
 
 	def actionButtonPressed(self):
 		dlg = PartManageDialog(self.db, self)
 		part = self.getSelected()
 		dlg.edit(part)
-		self.update(self.db, part)
+		self.updateData(self.db, part)

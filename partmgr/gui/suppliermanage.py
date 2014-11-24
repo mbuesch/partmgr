@@ -42,7 +42,7 @@ class SupplierEditWidget(QWidget):
 
 		self.urlEdit.textChanged.connect(self.__urlChanged)
 
-	def update(self, supplier):
+	def updateData(self, supplier):
 		self.changeBlocked += 1
 
 		self.currentSupplier = supplier
@@ -71,8 +71,8 @@ class SupplierManageDialog(AbstractEntityManageDialog):
 
 		self.nameLabel.setText("Supplier name:")
 
-	def update(self, selectSupplier=None):
-		AbstractEntityManageDialog.update(self,
+	def updateData(self, selectSupplier=None):
+		AbstractEntityManageDialog.updateData(self,
 			self.db.getSuppliers(),
 			selectSupplier)
 
@@ -80,9 +80,9 @@ class SupplierManageDialog(AbstractEntityManageDialog):
 		AbstractEntityManageDialog.entSelChanged(self,
 			item, prevItem)
 		supplier = item.getEntity() if item else None
-		self.editWidget.update(supplier)
+		self.editWidget.updateData(supplier)
 
 	def newEntity(self):
 		newSupplier = Supplier("Unnamed", "", "", db=self.db)
 		self.db.modifySupplier(newSupplier)
-		self.update(newSupplier)
+		self.updateData(newSupplier)

@@ -77,27 +77,27 @@ class PartMgrMainWidget(QWidget):
 	def manageGlobalParams(self):
 		dlg = GlobalParametersManageDialog(self.db, self)
 		dlg.edit()
-		self.stock.update()
+		self.stock.updateData()
 
 	def manageParts(self):
 		dlg = PartManageDialog(self.db, self)
 		dlg.edit()
-		self.stock.update()
+		self.stock.updateData()
 
 	def manageFootprints(self):
 		dlg = FootprintManageDialog(self.db, self)
 		dlg.edit()
-		self.stock.update()
+		self.stock.updateData()
 
 	def manageLocations(self):
 		dlg = LocationManageDialog(self.db, self)
 		dlg.edit()
-		self.stock.update()
+		self.stock.updateData()
 
 	def manageSuppliers(self):
 		dlg = SupplierManageDialog(self.db, self)
 		dlg.edit()
-		self.stock.update()
+		self.stock.updateData()
 
 class PartMgrMainWindow(QMainWindow):
 	def __init__(self, parent=None):

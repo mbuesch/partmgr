@@ -51,7 +51,7 @@ class FootprintEditWidget(QWidget):
 		self.imgImportButton.released.connect(self.__importImage)
 		self.imgClearButton.released.connect(self.__clearImage)
 
-	def update(self, footprint):
+	def updateData(self, footprint):
 		self.changeBlocked += 1
 
 		self.currentFootprint = footprint
@@ -88,7 +88,7 @@ class FootprintEditWidget(QWidget):
 				"Image import failed",
 				"Image import failed:\n" + str(e))
 			return
-		self.update(self.currentFootprint)
+		self.updateData(self.currentFootprint)
 
 	def __clearImage(self):
 		if not self.currentFootprint:
@@ -101,7 +101,7 @@ class FootprintEditWidget(QWidget):
 		if ret & QMessageBox.Yes == 0:
 			return
 		self.currentFootprint.setImage(Image())
-		self.update(self.currentFootprint)
+		self.updateData(self.currentFootprint)
 
 class FootprintManageDialog(AbstractEntityManageDialog):
 	"Footprint create/modify/delete dialog"
@@ -113,8 +113,8 @@ class FootprintManageDialog(AbstractEntityManageDialog):
 
 		self.nameLabel.setText("Footprint name:")
 
-	def update(self, selectFootprint=None):
-		AbstractEntityManageDialog.update(self,
+	def updateData(self, selectFootprint=None):
+		AbstractEntityManageDialog.updateData(self,
 			self.db.getFootprints(),
 			selectFootprint)
 
@@ -122,9 +122,9 @@ class FootprintManageDialog(AbstractEntityManageDialog):
 		AbstractEntityManageDialog.entSelChanged(self,
 			item, prevItem)
 		footprint = item.getEntity() if item else None
-		self.editWidget.update(footprint)
+		self.editWidget.updateData(footprint)
 
 	def newEntity(self):
 		newFootprint = Footprint("Unnamed", "", Image(), db=self.db)
 		self.db.modifyFootprint(newFootprint)
-		self.update(newFootprint)
+		self.updateData(newFootprint)

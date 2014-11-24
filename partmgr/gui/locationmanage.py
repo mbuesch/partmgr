@@ -34,12 +34,12 @@ class LocationManageDialog(AbstractEntityManageDialog):
 
 		self.nameLabel.setText("Location name:")
 
-	def update(self, selectLocation=None):
-		AbstractEntityManageDialog.update(self,
+	def updateData(self, selectLocation=None):
+		AbstractEntityManageDialog.updateData(self,
 			self.db.getLocations(),
 			selectLocation)
 
 	def newEntity(self):
 		newLocation = Location("Unnamed", "", db=self.db)
 		self.db.modifyLocation(newLocation)
-		self.update(newLocation)
+		self.updateData(newLocation)

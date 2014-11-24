@@ -31,7 +31,7 @@ class EntityComboBox(ProtectedComboBox):
 
 		self.updateBlocked = 0
 
-	def update(self, entities, selected=None):
+	def updateData(self, entities, selected=None):
 		if self.updateBlocked:
 			return
 		self.updateBlocked += 1
@@ -48,7 +48,7 @@ class EntityComboBox(ProtectedComboBox):
 		self.updateBlocked -= 1
 
 	def clear(self):
-		self.update([])
+		self.updateData([])
 
 	def getSelectedEntity(self):
 		index = self.currentIndex()

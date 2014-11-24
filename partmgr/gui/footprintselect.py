@@ -28,6 +28,6 @@ class FootprintSelectWidget(ItemSelectWidget):
 		ItemSelectWidget.__init__(self, parent)
 		self.db = None
 
-	def update(self, db, selected=None):
+	def updateData(self, db, selected=None):
 		self.db = db
-		ItemSelectWidget.update(self, db.getFootprints(), selected)
+		ItemSelectWidget.updateData(self, db.getFootprints(), selected)

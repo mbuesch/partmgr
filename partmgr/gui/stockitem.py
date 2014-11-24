@@ -158,7 +158,7 @@ class StockItemWidget(QWidget):
 
 		self.modifyBlocked -= 1
 
-	def update(self):
+	def updateData(self):
 		self.modifyBlocked += 1
 
 		self.__updateQuantity()
@@ -175,8 +175,8 @@ class StockItemWidget(QWidget):
 
 			self.modifyBlocked -= 1
 			return
-		self.partSel.update(stock.db)
-		self.footpSel.update(stock.db)
+		self.partSel.updateData(stock.db)
+		self.footpSel.updateData(stock.db)
 		part = stock.getPart()
 		self.partSel.setSelected(part)
 		footp = stock.getFootprint()
@@ -189,21 +189,21 @@ class StockItemWidget(QWidget):
 			image = image.scaleToMaxSize(QSize(50, 50))
 			self.footpImage.setPixmap(image.toPixmap())
 			self.footpImage.show()
-		self.storagesSel.update(stock)
-		self.originsSel.update(stock)
+		self.storagesSel.updateData(stock)
+		self.originsSel.updateData(stock)
 		self.setEnabled(True)
 
 		self.modifyBlocked -= 1
 
 	def setStockItem(self, item):
 		self.currentItem = item
-		self.update()
+		self.updateData()
 
 	def __quantityUnitsChanged(self, index):
 		if self.currentItem:
 			unit = self.quantityUnitsCombo.itemData(index)
 			self.currentItem.setQuantityUnits(unit)
-		self.update()
+		self.updateData()
 
 	def __minQuantityChanged(self, newValue):
 		stockItem = self.currentItem
@@ -228,7 +228,7 @@ class StockItemWidget(QWidget):
 		if not stockItem:
 			return
 		stockItem.setPart(part)
-		self.update()
+		self.updateData()
 
 	def __footpSelChanged(self, footprint):
 		if self.modifyBlocked:
@@ -237,4 +237,4 @@ class StockItemWidget(QWidget):
 		if not stockItem:
 			return
 		stockItem.setFootprint(footprint)
-		self.update()
+		self.updateData()

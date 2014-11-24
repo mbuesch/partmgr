@@ -39,9 +39,9 @@ class ParameterEditWidget(QWidget):
 
 		self.currentParam = None
 		self.changeBlocked = 0
-		self.update()
+		self.updateData()
 
-	def update(self, param=None):
+	def updateData(self, param=None):
 		self.changeBlocked += 1
 
 		self.combo.clear()
@@ -91,8 +91,8 @@ class GlobalParametersManageDialog(AbstractEntityManageDialog):
 			AbstractEntityManageDialog.READONLY_DESC |\
 			AbstractEntityManageDialog.READONLY_NAME)
 
-	def update(self, selectPart=None):
-		AbstractEntityManageDialog.update(
+	def updateData(self, selectPart=None):
+		AbstractEntityManageDialog.updateData(
 			self, self.db.getUserParameters(),
 			selectPart)
 
@@ -100,4 +100,4 @@ class GlobalParametersManageDialog(AbstractEntityManageDialog):
 		AbstractEntityManageDialog.entSelChanged(self,
 			item, prevItem)
 		param = item.getEntity() if item else None
-		self.editWidget.update(param)
+		self.editWidget.updateData(param)

@@ -38,7 +38,7 @@ class OneStorageSelectWidget(ItemSelectWidget):
 			itemSpecificWidget = self.quantity)
 
 		self.storage = storage
-		self.update(storage.db.getLocations(),
+		self.updateData(storage.db.getLocations(),
 			    storage.getLocation())
 
 		self.selectionChanged.connect(self.__locationSelChanged)
@@ -54,7 +54,7 @@ class OneStorageSelectWidget(ItemSelectWidget):
 	def actionButtonPressed(self):
 		self.storage.delete()
 		self.quantityChanged.emit(0)
-		self.parent().update()
+		self.parent().updateData()
 
 class StoragesSelectWidget(GroupSelectWidget):
 	quantityChanged = Signal()
@@ -64,7 +64,7 @@ class StoragesSelectWidget(GroupSelectWidget):
 					   "Add new storage")
 		self.currentStockItem = None
 
-	def update(self, stockItem=None):
+	def updateData(self, stockItem=None):
 		if not stockItem:
 			stockItem = self.currentStockItem
 		self.clear()
@@ -88,4 +88,4 @@ class StoragesSelectWidget(GroupSelectWidget):
 			location = None,
 			quantity = 0)
 		stockItem.db.modifyStorage(storage)
-		self.update(stockItem)
+		self.updateData(stockItem)

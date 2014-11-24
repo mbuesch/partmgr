@@ -89,8 +89,8 @@ class ItemSelectWidget(QWidget):
 		except AttributeError as e:
 			pass
 
-	def update(self, entities, selected=None):
-		self.combo.update(entities, selected)
+	def updateData(self, entities, selected=None):
+		self.combo.updateData(entities, selected)
 
 	def clear(self):
 		self.combo.clear()

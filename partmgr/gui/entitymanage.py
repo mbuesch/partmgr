@@ -116,7 +116,7 @@ class AbstractEntityManageDialog(QDialog):
 		self.nameEdit.textChanged.connect(self.nameChanged)
 		self.closeButton.released.connect(self.accept)
 
-	def update(self, entities=[], selectEntity=None):
+	def updateData(self, entities=[], selectEntity=None):
 		self.entityList.clear()
 		entities.sort(key=lambda ent: ent.getName())
 		selectItem = None
@@ -129,7 +129,7 @@ class AbstractEntityManageDialog(QDialog):
 			self.entityList.setCurrentItem(selectItem)
 
 	def edit(self, selectEntity=None):
-		self.update(selectEntity)
+		self.updateData(selectEntity)
 		return self.exec_()
 
 	def entSelChanged(self, item=None, prevItem=None):
@@ -184,7 +184,7 @@ class AbstractEntityManageDialog(QDialog):
 		if ret & QMessageBox.Yes == 0:
 			return
 		entity.delete()
-		self.update()
+		self.updateData()
 
 	def newEntity(self):
 		raise NotImplementedError

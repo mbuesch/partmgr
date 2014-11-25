@@ -225,6 +225,8 @@ class TreeModel(QAbstractItemModel):
 		self.rowsInserted.emit(self.entityToModelIndex(parentCat),
 				       entityRow, entityRow)
 
+		return self.entityToModelIndex(stockItem)
+
 	# Add a new Category to the database
 	def addCategory(self, parentTreeItem, category):
 		assert(not category.hasValidId())
@@ -236,6 +238,8 @@ class TreeModel(QAbstractItemModel):
 		entityRow = self.entityToRowNumber(category)
 		self.rowsInserted.emit(self.entityToModelIndex(parentCat),
 				       entityRow, entityRow)
+
+		return self.entityToModelIndex(category)
 
 	# Delete a TreeItem (stock or category) from the database
 	def delTreeItem(self, treeItem):
@@ -307,9 +311,14 @@ class Tree(QTreeView):
 		category = Category(
 			name = "New category",
 			description = "")
-		self.model().addCategory(parentTreeItem, category)
+		newModelIndex = self.model().addCategory(parentTreeItem,
+							 category)
+
 		if parentTreeItem:
-			self.setExpanded(parentTreeItem.modelIndex, True)
+			self.expand(parentTreeItem.modelIndex)
+		self.setCurrentIndex(newModelIndex)
+		self.edit(newModelIndex)
+
 
 	def delCategory(self):
 		assert(self.contextTreeItem.entityType == TreeItem.CATEGORY)
@@ -357,8 +366,12 @@ class Tree(QTreeView):
 			minQuantity = 0,
 			targetQuantity = 0,
 			quantityUnits = StockItem.UNIT_PC)
-		self.model().addStockItem(self.contextTreeItem, stockItem)
-		self.setExpanded(self.contextTreeItem.modelIndex, True)
+		newModelIndex = self.model().addStockItem(self.contextTreeItem,
+							  stockItem)
+
+		self.expand(self.contextTreeItem.modelIndex)
+		self.setCurrentIndex(newModelIndex)
+		self.edit(newModelIndex)
 
 	def delStockItem(self):
 		assert(self.contextTreeItem.entityType == TreeItem.STOCKITEM)

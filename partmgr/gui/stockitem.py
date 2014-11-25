@@ -176,7 +176,7 @@ class StockItemWidget(QWidget):
 
 			self.modifyBlocked -= 1
 			return
-		self.partSel.updateData(stock.db)
+		self.partSel.updateData(stock)
 		self.footpSel.updateData(stock.db)
 		part = stock.getPart()
 		self.partSel.setSelected(part)

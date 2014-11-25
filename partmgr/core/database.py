@@ -51,6 +51,7 @@ class Database(QObject):
 		self.__commitTimer = QTimer(self)
 		self.__commitTimer.setSingleShot(True)
 		self.__commitTimer.timeout.connect(self.__commitTimerTrig)
+		self.__commitTimerSchedBlock = 0
 		try:
 			self.db = sql.connect(str(filename))
 			self.db.text_factory = str
@@ -77,13 +78,36 @@ class Database(QObject):
 		return "Database(%s)" % str(self.filename)
 
 	def commit(self):
-		self.db.commit()
+		self.__commitTimerSchedBlock += 1
+		try:
+			rev = None
+			try:
+				rev = self.getParameterByName("partmgr_db_revision")
+				if not rev:
+					raise ValueError
+				revNr = rev.getDataInt()
+			except (PartMgrError, ValueError) as e:
+				try:
+					if rev:
+						self.delParameter(rev)
+				except PartMgrError:
+					pass
+				rev = Parameter("partmgr_db_revision", "", 0)
+				revNr = rev.getDataInt()
+			revNr += 1
+			rev.setData(revNr)
+			self.modifyParameter(rev)
+			print("Committing database (rev %d)..." % revNr)
+			self.db.commit()
+		finally:
+			self.__commitTimerSchedBlock -= 1
 
 	def __commitTimerTrig(self):
-		print("Committing database...")
 		self.commit()
 
 	def scheduleCommit(self, seconds=5.0):
+		if self.__commitTimerSchedBlock:
+			return
 		self.__commitTimer.start(int(round(seconds * 1000)))
 
 	def close(self):
@@ -112,7 +136,8 @@ class Database(QObject):
 				   "name TEXT, description TEXT, "
 				   "data TEXT)",
 			"parts(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-			      "name TEXT, description TEXT)",
+			      "name TEXT, description TEXT, "
+			      "category INTEGER)",
 			"categories(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				   "name TEXT, description TEXT, "
 				   "parent INTEGER)",
@@ -232,7 +257,7 @@ class Database(QObject):
 		id = Entity.toId(part)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description "
+			c.execute("SELECT name, description, category "
 				  "FROM parts "
 				  "WHERE id=?;",
 				  (id,))
@@ -241,6 +266,7 @@ class Database(QObject):
 				return None
 			return Part(fromBase64(data[0]),
 				    fromBase64(data[1]),
+				    int(data[2]),
 				    id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -248,13 +274,34 @@ class Database(QObject):
 	def getParts(self):
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description "
+			c.execute("SELECT id, name, description, category "
 				  "FROM parts;")
 			data = c.fetchall()
 			if not data:
 				return []
 			return [ Part(fromBase64(d[1]),
 				      fromBase64(d[2]),
+				      int(d[3]),
+				      id=int(d[0]), db=self)
+				for d in data ]
+		except (sql.Error, ValueError) as e:
+			self.__databaseError(e)
+
+	def getPartsByCategory(self, category):
+		categoryId = Entity.toId(category)
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT id, name, description, category "
+				  "FROM parts "
+				  "WHERE category=? "
+				  "ORDER BY id;",
+				  (categoryId,))
+			data = c.fetchall()
+			if not data:
+				return []
+			return [ Part(fromBase64(d[1]),
+				      fromBase64(d[2]),
+				      int(d[3]),
 				      id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -265,17 +312,19 @@ class Database(QObject):
 			c = self.db.cursor()
 			if part.inDatabase(self):
 				c.execute("UPDATE parts "
-					  "SET name=?, description=? "
+					  "SET name=?, description=?, category=? "
 					  "WHERE id=?;",
 					  (toBase64(part.name),
 					   toBase64(part.description),
+					   int(part.category),
 					   int(part.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "parts(name, description) "
-					  "VALUES(?,?);",
+					  "parts(name, description, category) "
+					  "VALUES(?,?,?);",
 					  (toBase64(part.name),
-					   toBase64(part.description)))
+					   toBase64(part.description),
+					   int(part.category)))
 				part.id = c.lastrowid
 				part.db = self
 			self.scheduleCommit()

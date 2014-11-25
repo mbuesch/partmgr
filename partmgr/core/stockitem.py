@@ -124,6 +124,9 @@ class StockItem(Entity):
 		self.part = self.toId(newPart)
 		self.syncDatabase()
 
+	def getAllParts(self):
+		return self.db.getPartsByCategory(self.category)
+
 	def setCategory(self, category):
 		self.category = self.toId(category)
 		self.syncDatabase()

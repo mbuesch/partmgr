@@ -28,14 +28,14 @@ class PartSelectWidget(ItemSelectWidget):
 	def __init__(self, parent=None):
 		ItemSelectWidget.__init__(self, parent,
 			actionButtonLabel = "Manage parts")
-		self.db = None
+		self.stockItem = None
 
-	def updateData(self, db, selected=None):
-		self.db = db
-		ItemSelectWidget.updateData(self, db.getParts(), selected)
+	def updateData(self, stockItem, selectedPart=None):
+		self.stockItem = stockItem
+		ItemSelectWidget.updateData(self, stockItem.getAllParts(), selectedPart)
 
 	def actionButtonPressed(self):
-		dlg = PartManageDialog(self.db, self)
+		dlg = PartManageDialog(self.stockItem, self)
 		part = self.getSelected()
 		dlg.edit(part)
-		self.updateData(self.db, part)
+		self.updateData(self.stockItem, part)

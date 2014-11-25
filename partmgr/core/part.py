@@ -27,13 +27,26 @@ class Part(Entity):
 	"Part descriptor."
 
 	def __init__(self, name, description,
+		     category,
 		     id=Entity.NO_ID, db=None):
 		Entity.__init__(self, name, description,
 				id, db, "Part")
+		self.category = Entity.toId(category)
 
 	def syncDatabase(self):
 		if self.db:
 			self.db.modifyPart(self)
+
+	def setCategory(self, category):
+		self.category = self.toId(category)
+		self.syncDatabase()
+
+	def hasCategory(self):
+		return Entity.isValidId(self.category)
+
+	def getCategory(self):
+		assert(self.hasCategory())
+		return self.db.getCategory(self.category)
 
 	def delete(self):
 		self.db.delPart(self)

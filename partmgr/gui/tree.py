@@ -304,6 +304,20 @@ class Tree(QTreeView):
 		menu.exec_(event.globalPos())
 		super(Tree, self).contextMenuEvent(event)
 
+	def keyPressEvent(self, ev):
+		super(Tree, self).keyPressEvent(ev)
+
+		if ev.key() == Qt.Key_Delete:
+			self.contextTreeItem = self.model().modelIndexToTreeItem(self.currentIndex())
+			if not self.contextTreeItem:
+				return
+			if self.contextTreeItem.entityType == TreeItem.CATEGORY:
+				self.delCategory()
+			elif self.contextTreeItem.entityType == TreeItem.STOCKITEM:
+				self.delStockItem()
+			else:
+				assert(0)
+
 	def addCategory(self):
 		parentTreeItem = self.contextTreeItem
 		assert(parentTreeItem is None or\

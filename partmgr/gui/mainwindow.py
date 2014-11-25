@@ -197,14 +197,19 @@ class PartMgrMainWindow(QMainWindow):
 			mainWidget.manageSuppliers()
 
 	def loadDatabase(self):
-		fn, ok = QFileDialog.getSaveFileName(self,
+		fn, filt = QFileDialog.getSaveFileName(self,
 				"Load database", "",
 				"PartMgr files (*.pmg);;"
 				"All files (*)",
 				"", QFileDialog.DontConfirmOverwrite |
 				QFileDialog.DontUseNativeDialog)
-		if ok and fn:
-			self.loadDatabaseFile(fn)
+		if not fn:
+			return
+		filt = filt.split('(')[1].split(')')[0].strip()
+		if filt == "*.pmg":
+			if not fn.endswith(".pmg"):
+				fn += ".pmg"
+		self.loadDatabaseFile(fn)
 
 	def loadDatabaseFile(self, filename):
 		try:

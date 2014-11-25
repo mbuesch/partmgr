@@ -24,7 +24,6 @@ from partmgr.gui.stockitem import *
 from partmgr.gui.partselect import *
 from partmgr.gui.partstoorder import *
 from partmgr.gui.globalstats import *
-from partmgr.gui.partmanage import *
 from partmgr.gui.footprintmanage import *
 from partmgr.gui.locationmanage import *
 from partmgr.gui.suppliermanage import *
@@ -92,11 +91,6 @@ class PartMgrMainWidget(QWidget):
 		dlg.edit()
 		self.stock.updateData()
 
-	def manageParts(self):
-		dlg = PartManageDialog(self.db, self)
-		dlg.edit()
-		self.stock.updateData()
-
 	def manageFootprints(self):
 		dlg = FootprintManageDialog(self.db, self)
 		dlg.edit()
@@ -126,8 +120,6 @@ class PartMgrMainWindow(QMainWindow):
 		self.menuBar().addMenu(self.fileMenu)
 
 		self.dbMenu = QMenu("&Database", self)
-		self.dbMenu.addAction("Manage &parts...",
-				      self.manageParts)
 		self.dbMenu.addAction("Manage &footprints...",
 				      self.manageFootprints)
 		self.dbMenu.addAction("Manage &locations...",
@@ -175,11 +167,6 @@ class PartMgrMainWindow(QMainWindow):
 		mainWidget = self.centralWidget()
 		if mainWidget:
 			mainWidget.manageGlobalParams()
-
-	def manageParts(self):
-		mainWidget = self.centralWidget()
-		if mainWidget:
-			mainWidget.manageParts()
 
 	def manageFootprints(self):
 		mainWidget = self.centralWidget()

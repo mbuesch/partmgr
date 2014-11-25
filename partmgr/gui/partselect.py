@@ -27,7 +27,7 @@ from partmgr.gui.util import *
 class PartSelectWidget(ItemSelectWidget):
 	def __init__(self, parent=None):
 		ItemSelectWidget.__init__(self, parent,
-			actionButtonLabel = "Edit")
+			actionButtonLabel = "Manage parts")
 		self.db = None
 
 	def updateData(self, db, selected=None):

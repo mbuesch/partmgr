@@ -308,6 +308,8 @@ class Tree(QTreeView):
 			name = "New category",
 			description = "")
 		self.model().addCategory(parentTreeItem, category)
+		if parentTreeItem:
+			self.setExpanded(parentTreeItem.modelIndex, True)
 
 	def delCategory(self):
 		assert(self.contextTreeItem.entityType == TreeItem.CATEGORY)
@@ -356,6 +358,7 @@ class Tree(QTreeView):
 			targetQuantity = 0,
 			quantityUnits = StockItem.UNIT_PC)
 		self.model().addStockItem(self.contextTreeItem, stockItem)
+		self.setExpanded(self.contextTreeItem.modelIndex, True)
 
 	def delStockItem(self):
 		assert(self.contextTreeItem.entityType == TreeItem.STOCKITEM)

@@ -38,7 +38,7 @@ class PriceSpinBox(ProtectedDoubleSpinBox):
 		self.setDecimals(2)
 		self.setSingleStep(0.1)
 		currency = db.getParameterByName("currency")
-		currency = Parameter.CURRNAMES[currency.getDataInt()][0]
+		currency = Param_Currency.CURRNAMES[currency.getDataInt()][0]
 		self.setSuffix(" " + currency)
 
 class OriginWidget(QWidget):

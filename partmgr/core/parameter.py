@@ -26,25 +26,37 @@ from partmgr.core.util import *
 class Parameter(Entity):
 	"Parameter descriptor."
 
-	# "currency" parameter
-	CURR_EUR	= 0
-	CURR_USD	= 1
-
-	CURRNAMES = {
-		CURR_EUR	: ("EUR", "Euro"),
-		CURR_USD	: ("USD", "US Dollar"),
-	}
+	# Parent types
+	PTYPE_GLOBAL	= 0
+	PTYPE_PART	= 1
+	PTYPE_CATEGORY	= 2
+	PTYPE_SUPPLIER	= 3
+	PTYPE_LOCATION	= 4
+	PTYPE_FOOTPRINT	= 5
+	PTYPE_STOCKITEM	= 6
+	PTYPE_ORIGIN	= 7
+	PTYPE_STORAGE	= 8
 
 	def __init__(self, name, description="", flags=0,
+		     parentType=PTYPE_GLOBAL, parent=None,
 		     data=b"",
 		     id=Entity.NO_ID, db=None):
 		Entity.__init__(self, name, description, flags,
 				id, db, "Parameter")
+		self.parentType = parentType
+		self.parent = Entity.toId(parent)
 		self.__setData(data)
 
 	def syncDatabase(self):
 		if self.db:
 			self.db.modifyParameter(self)
+
+	def setParentType(self, parentType):
+		self.parentType = self.toId(parentType)
+		self.syncDatabase()
+
+	def getParentType(self):
+		return self.parentType
 
 	def getData(self):
 		return self.data
@@ -90,7 +102,20 @@ class Parameter(Entity):
 		args.append(str(self.name))
 		args.append(str(self.description))
 		args.append(str(self.flags))
+		args.append(str(self.parentType))
+		args.append(str(self.parent))
 		args.append(str(self.data))
 		args.append(str(self.id))
 		args.append(str(self.db))
 		return "Parameter(" + ", ".join(args) + ")"
+
+class Param_Currency(Parameter):
+	# "currency" parameter data
+	CURR_EUR	= 0
+	CURR_USD	= 1
+
+	# currency name string table
+	CURRNAMES = {
+		CURR_EUR	: ("EUR", "Euro"),
+		CURR_USD	: ("USD", "US Dollar"),
+	}

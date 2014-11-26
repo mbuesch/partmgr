@@ -43,7 +43,7 @@ class Database(QObject):
 	# User editable parameters
 	USER_PARAMS = {
 		# "name"	: (description, default-value)
-		"currency"	: ("Price currency", Parameter.CURR_EUR),
+		"currency"	: ("Price currency", Param_Currency.CURR_EUR),
 	}
 
 	def __init__(self, filename):
@@ -135,6 +135,7 @@ class Database(QObject):
 			"parameters(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				   "name TEXT, description TEXT, "
 				   "flags INTEGER, "
+				   "parentType INTEGER, parent INTEGER, "
 				   "data TEXT)",
 			"parts(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 			      "name TEXT, description TEXT, "
@@ -191,7 +192,8 @@ class Database(QObject):
 	def getParameterByName(self, paramName):
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, description, flags, data "
+			c.execute("SELECT id, description, flags, "
+				  "parentType, parent, data "
 				  "FROM parameters "
 				  "WHERE name=?;",
 				  (toBase64(paramName),))
@@ -201,7 +203,9 @@ class Database(QObject):
 			return Parameter(paramName,
 					 fromBase64(data[1]),
 					 int(data[2]),
-					 fromBase64(data[3], toBytes=True),
+					 int(data[3]),
+					 int(data[4]),
+					 fromBase64(data[5], toBytes=True),
 					 id=int(data[0]), db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -230,22 +234,26 @@ class Database(QObject):
 			c = self.db.cursor()
 			if parameter.inDatabase(self):
 				c.execute("UPDATE parameters "
-					  "SET name=?, description=?, "
-					  "flags=?, data=? "
+					  "SET name=?, description=?, flags=?, "
+					  "parentType=?, parent=?, data=? "
 					  "WHERE id=?;",
 					  (toBase64(parameter.name),
 					   toBase64(parameter.description),
 					   int(parameter.flags),
+					   int(parameter.parentType),
+					   int(parameter.parent),
 					   toBase64(parameter.data),
 					   int(parameter.id)))
 			else:
 				c.execute("INSERT INTO "
 					  "parameters(name, description, "
-					  "flags, data) "
-					  "VALUES(?,?,?,?);",
+					  "flags, parentType, parent, data) "
+					  "VALUES(?,?,?,?,?,?);",
 					  (toBase64(parameter.name),
 					   toBase64(parameter.description),
 					   int(parameter.flags),
+					   int(parameter.parentType),
+					   int(parameter.parent),
 					   toBase64(parameter.data)))
 				parameter.id = c.lastrowid
 				parameter.db = self

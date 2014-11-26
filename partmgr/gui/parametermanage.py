@@ -51,13 +51,13 @@ class ParameterEditWidget(QWidget):
 		if not param:
 			pass
 		elif param.getName() == "currency":
-			currencies = list(Parameter.CURRNAMES.keys())
+			currencies = list(Param_Currency.CURRNAMES.keys())
 			currencies.sort(key = \
-				lambda c: Parameter.CURRNAMES[c][1])
+				lambda c: Param_Currency.CURRNAMES[c][1])
 			selectedIndex = 0
 			for i, curr in enumerate(currencies):
 				self.combo.addItem(
-					Parameter.CURRNAMES[curr][1],
+					Param_Currency.CURRNAMES[curr][1],
 					curr)
 				if curr == param.getDataInt():
 					selectedIndex = i

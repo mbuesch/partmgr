@@ -35,9 +35,10 @@ class Parameter(Entity):
 		CURR_USD	: ("USD", "US Dollar"),
 	}
 
-	def __init__(self, name, description, data,
+	def __init__(self, name, description="", flags=0,
+		     data=b"",
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Parameter")
 		self.__setData(data)
 
@@ -88,6 +89,7 @@ class Parameter(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.data))
 		args.append(str(self.id))
 		args.append(str(self.db))

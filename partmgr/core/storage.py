@@ -26,10 +26,10 @@ from partmgr.core.util import *
 class Storage(Entity):
 	"Item storage descriptor."
 
-	def __init__(self, name, description,
-		     stockItem, location, quantity,
+	def __init__(self, name, description="", flags=0,
+		     stockItem=None, location=None, quantity=0,
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Storage")
 		self.stockItem = Entity.toId(stockItem)
 		self.location = Entity.toId(location)
@@ -66,6 +66,7 @@ class Storage(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.stockItem))
 		args.append(str(self.location))
 		args.append(str(self.quantity))

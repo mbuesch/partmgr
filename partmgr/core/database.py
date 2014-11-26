@@ -58,9 +58,8 @@ class Database(QObject):
 			if self.__sqlIsEmpty():
 				# This is an empty database
 				self.__initTables()
-				ver = Parameter(
-					"partmgr_db_version", "",
-					self.DB_VERSION)
+				ver = Parameter("partmgr_db_version",
+						data = self.DB_VERSION)
 				self.modifyParameter(ver)
 			else:
 				ver = self.getParameterByName(
@@ -92,7 +91,8 @@ class Database(QObject):
 						self.delParameter(rev)
 				except PartMgrError:
 					pass
-				rev = Parameter("partmgr_db_revision", "", 0)
+				rev = Parameter("partmgr_db_revision",
+						data = 0)
 				revNr = rev.getDataInt()
 			revNr += 1
 			rev.setData(revNr)
@@ -134,23 +134,30 @@ class Database(QObject):
 		tables = (
 			"parameters(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				   "name TEXT, description TEXT, "
+				   "flags INTEGER, "
 				   "data TEXT)",
 			"parts(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 			      "name TEXT, description TEXT, "
+			      "flags INTEGER, "
 			      "category INTEGER)",
 			"categories(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				   "name TEXT, description TEXT, "
+				   "flags INTEGER, "
 				   "parent INTEGER)",
 			"suppliers(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				  "name TEXT, description TEXT, "
+				  "flags INTEGER, "
 				  "url TEXT)",
 			"locations(id INTEGER PRIMARY KEY AUTOINCREMENT, "
-				  "name TEXT, description TEXT)",
+				  "name TEXT, description TEXT, "
+				  "flags INTEGER)",
 			"footprints(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				   "name TEXT, description TEXT, "
+				   "flags INTEGER, "
 				   "image TEXT)",
 			"stock(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 			      "name TEXT, description TEXT, "
+			      "flags INTEGER, "
 			      "part INTEGER, category INTEGER, "
 			      "footprint INTEGER, "
 			      "minQuantity INTEGER, "
@@ -158,10 +165,12 @@ class Database(QObject):
 			      "quantityUnits INTEGER)",
 			"origins(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				"name TEXT, description TEXT, "
+				"flags INTEGER, "
 				"stockItem INTEGER, supplier INTEGER, "
 				"orderCode TEXT, price FLOAT)",
 			"storages(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				 "name TEXT, description TEXT, "
+				 "flags INTEGER, "
 				 "stockItem INTEGER, location INTEGER, "
 				 "quantity INTEGER)",
 		)
@@ -182,7 +191,7 @@ class Database(QObject):
 	def getParameterByName(self, paramName):
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, description, data "
+			c.execute("SELECT id, description, flags, data "
 				  "FROM parameters "
 				  "WHERE name=?;",
 				  (toBase64(paramName),))
@@ -191,7 +200,8 @@ class Database(QObject):
 				return None
 			return Parameter(paramName,
 					 fromBase64(data[1]),
-					 fromBase64(data[2], toBytes=True),
+					 int(data[2]),
+					 fromBase64(data[3], toBytes=True),
 					 id=int(data[0]), db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -211,8 +221,8 @@ class Database(QObject):
 				# Does exist. Skip it.
 				continue
 			param = Parameter(name,
-				self.USER_PARAMS[name][0],
-				self.USER_PARAMS[name][1])
+				description = self.USER_PARAMS[name][0],
+				data = self.USER_PARAMS[name][1])
 			self.modifyParameter(param)
 
 	def modifyParameter(self, parameter):
@@ -221,19 +231,21 @@ class Database(QObject):
 			if parameter.inDatabase(self):
 				c.execute("UPDATE parameters "
 					  "SET name=?, description=?, "
-					  "data=? "
+					  "flags=?, data=? "
 					  "WHERE id=?;",
 					  (toBase64(parameter.name),
 					   toBase64(parameter.description),
+					   int(parameter.flags),
 					   toBase64(parameter.data),
 					   int(parameter.id)))
 			else:
 				c.execute("INSERT INTO "
 					  "parameters(name, description, "
-					  "data) "
-					  "VALUES(?,?,?);",
+					  "flags, data) "
+					  "VALUES(?,?,?,?);",
 					  (toBase64(parameter.name),
 					   toBase64(parameter.description),
+					   int(parameter.flags),
 					   toBase64(parameter.data)))
 				parameter.id = c.lastrowid
 				parameter.db = self
@@ -257,7 +269,7 @@ class Database(QObject):
 		id = Entity.toId(part)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, category "
+			c.execute("SELECT name, description, flags, category "
 				  "FROM parts "
 				  "WHERE id=?;",
 				  (id,))
@@ -267,6 +279,7 @@ class Database(QObject):
 			return Part(fromBase64(data[0]),
 				    fromBase64(data[1]),
 				    int(data[2]),
+				    int(data[3]),
 				    id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -274,7 +287,7 @@ class Database(QObject):
 	def getParts(self):
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, category "
+			c.execute("SELECT id, name, description, flags, category "
 				  "FROM parts;")
 			data = c.fetchall()
 			if not data:
@@ -282,6 +295,7 @@ class Database(QObject):
 			return [ Part(fromBase64(d[1]),
 				      fromBase64(d[2]),
 				      int(d[3]),
+				      int(d[4]),
 				      id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -291,7 +305,7 @@ class Database(QObject):
 		categoryId = Entity.toId(category)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, category "
+			c.execute("SELECT id, name, description, flags, category "
 				  "FROM parts "
 				  "WHERE category=? "
 				  "ORDER BY id;",
@@ -302,6 +316,7 @@ class Database(QObject):
 			return [ Part(fromBase64(d[1]),
 				      fromBase64(d[2]),
 				      int(d[3]),
+				      int(d[4]),
 				      id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -312,18 +327,20 @@ class Database(QObject):
 			c = self.db.cursor()
 			if part.inDatabase(self):
 				c.execute("UPDATE parts "
-					  "SET name=?, description=?, category=? "
+					  "SET name=?, description=?, flags=?, category=? "
 					  "WHERE id=?;",
 					  (toBase64(part.name),
 					   toBase64(part.description),
+					   int(part.flags),
 					   int(part.category),
 					   int(part.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "parts(name, description, category) "
-					  "VALUES(?,?,?);",
+					  "parts(name, description, flags, category) "
+					  "VALUES(?,?,?,?);",
 					  (toBase64(part.name),
 					   toBase64(part.description),
+					   int(part.flags),
 					   int(part.category)))
 				part.id = c.lastrowid
 				part.db = self
@@ -346,7 +363,7 @@ class Database(QObject):
 		id = Entity.toId(category)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, parent "
+			c.execute("SELECT name, description, flags, parent "
 				  "FROM categories "
 				  "WHERE id=?;",
 				  (int(id),))
@@ -356,6 +373,7 @@ class Database(QObject):
 			return Category(fromBase64(data[0]),
 					fromBase64(data[1]),
 					int(data[2]),
+					int(data[3]),
 					id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -370,7 +388,7 @@ class Database(QObject):
 		parentId = Entity.toId(parentCategory)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, parent "
+			c.execute("SELECT id, name, description, flags, parent "
 				  "FROM categories "
 				  "WHERE parent=? ORDER BY id;",
 				  (int(parentId),))
@@ -380,6 +398,7 @@ class Database(QObject):
 			return [ Category(fromBase64(d[1]),
 					  fromBase64(d[2]),
 					  int(d[3]),
+					  int(d[4]),
 					  id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -405,20 +424,22 @@ class Database(QObject):
 			c = self.db.cursor()
 			if category.inDatabase(self):
 				c.execute("UPDATE categories "
-					  "SET name=?, description=?, "
+					  "SET name=?, description=?, flags=?, "
 					  "parent=? "
 					  "WHERE id=?;",
 					  (toBase64(category.name),
 					   toBase64(category.description),
+					   int(category.flags),
 					   int(category.parent),
 					   int(category.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "categories(name, description, "
+					  "categories(name, description, flags, "
 					  "parent) "
-					  "VALUES(?,?,?);",
+					  "VALUES(?,?,?,?);",
 					  (toBase64(category.name),
 					   toBase64(category.description),
+					   int(category.flags),
 					   int(category.parent)))
 				category.id = c.lastrowid
 				category.db = self
@@ -442,7 +463,7 @@ class Database(QObject):
 		id = Entity.toId(supplier)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, url "
+			c.execute("SELECT name, description, flags, url "
 				  "FROM suppliers "
 				  "WHERE id=?;",
 				  (int(id),))
@@ -451,7 +472,8 @@ class Database(QObject):
 				return None
 			return Supplier(fromBase64(data[0]),
 					fromBase64(data[1]),
-					fromBase64(data[2]),
+					int(data[2]),
+					fromBase64(data[3]),
 					id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -459,14 +481,15 @@ class Database(QObject):
 	def getSuppliers(self):
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, url "
+			c.execute("SELECT id, name, description, flags, url "
 				  "FROM suppliers;")
 			data = c.fetchall()
 			if not data:
 				return []
 			return [ Supplier(fromBase64(d[1]),
 					  fromBase64(d[2]),
-					  fromBase64(d[3]),
+					  int(d[3]),
+					  fromBase64(d[4]),
 					  id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -477,19 +500,21 @@ class Database(QObject):
 			c = self.db.cursor()
 			if supplier.inDatabase(self):
 				c.execute("UPDATE suppliers "
-					  "SET name=?, description=?, url=? "
+					  "SET name=?, description=?, flags=?, url=? "
 					  "WHERE id=?;",
 					  (toBase64(supplier.name),
 					   toBase64(supplier.description),
+					   int(supplier.flags),
 					   toBase64(supplier.url),
 					   int(supplier.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "suppliers(name, description, "
+					  "suppliers(name, description, flags, "
 					  "url) "
-					  "VALUES(?,?,?);",
+					  "VALUES(?,?,?,?);",
 					  (toBase64(supplier.name),
 					   toBase64(supplier.description),
+					   int(supplier.flags),
 					   toBase64(supplier.url)))
 				supplier.id = c.lastrowid
 				supplier.db = self
@@ -513,7 +538,7 @@ class Database(QObject):
 		id = Entity.toId(location)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description "
+			c.execute("SELECT name, description, flags "
 				  "FROM locations "
 				  "WHERE id=?;",
 				  (int(id),))
@@ -522,6 +547,7 @@ class Database(QObject):
 				return None
 			return Location(fromBase64(data[0]),
 					fromBase64(data[1]),
+					int(data[2]),
 					id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -529,13 +555,14 @@ class Database(QObject):
 	def getLocations(self):
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description "
+			c.execute("SELECT id, name, description, flags "
 				  "FROM locations;")
 			data = c.fetchall()
 			if not data:
 				return []
 			return [ Location(fromBase64(d[1]),
 					  fromBase64(d[2]),
+					  int(d[3]),
 					  id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -546,17 +573,19 @@ class Database(QObject):
 			c = self.db.cursor()
 			if location.inDatabase(self):
 				c.execute("UPDATE locations "
-					  "SET name=?, description=? "
+					  "SET name=?, description=?, flags=? "
 					  "WHERE id=?;",
 					  (toBase64(location.name),
 					   toBase64(location.description),
+					   int(location.flags),
 					   int(location.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "locations(name, description) "
-					  "VALUES(?,?);",
+					  "locations(name, description, flags) "
+					  "VALUES(?,?,?);",
 					  (toBase64(location.name),
-					   toBase64(location.description)))
+					   toBase64(location.description),
+					   int(location.flags)))
 				location.id = c.lastrowid
 				location.db = self
 			self.scheduleCommit()
@@ -579,7 +608,7 @@ class Database(QObject):
 		id = Entity.toId(footprint)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, image "
+			c.execute("SELECT name, description, flags, image "
 				  "FROM footprints "
 				  "WHERE id=?;",
 				  (int(id),))
@@ -588,7 +617,8 @@ class Database(QObject):
 				return None
 			return Footprint(fromBase64(data[0]),
 					 fromBase64(data[1]),
-					 Image(data[2]),
+					 int(data[2]),
+					 Image(data[3]),
 					 id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -596,14 +626,15 @@ class Database(QObject):
 	def getFootprints(self):
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, image "
+			c.execute("SELECT id, name, description, flags, image "
 				  "FROM footprints;")
 			data = c.fetchall()
 			if not data:
 				return []
 			return [ Footprint(fromBase64(d[1]),
 					   fromBase64(d[2]),
-					   Image(d[3]),
+					   int(d[3]),
+					   Image(d[4]),
 					   id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -614,20 +645,22 @@ class Database(QObject):
 			c = self.db.cursor()
 			if footprint.inDatabase(self):
 				c.execute("UPDATE footprints "
-					  "SET name=?, description=?, "
+					  "SET name=?, description=?, flags=?, "
 					  "image=? "
 					  "WHERE id=?;",
 					  (toBase64(footprint.name),
 					   toBase64(footprint.description),
+					   int(footprint.flags),
 					   footprint.image.toString(),
 					   int(footprint.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "footprints(name, description, "
+					  "footprints(name, description, flags, "
 					  "image) "
-					  "VALUES(?,?,?);",
+					  "VALUES(?,?,?,?);",
 					  (toBase64(footprint.name),
 					   toBase64(footprint.description),
+					   int(footprint.flags),
 					   footprint.image.toString()))
 				footprint.id = c.lastrowid
 				footprint.db = self
@@ -651,7 +684,7 @@ class Database(QObject):
 		id = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, "
+			c.execute("SELECT name, description, flags, "
 				  "part, category, footprint, "
 				  "minQuantity, targetQuantity, "
 				  "quantityUnits "
@@ -669,6 +702,7 @@ class Database(QObject):
 					 int(data[5]),
 					 int(data[6]),
 					 int(data[7]),
+					 int(data[8]),
 					 id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -677,7 +711,7 @@ class Database(QObject):
 		categoryId = Entity.toId(category)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, "
+			c.execute("SELECT id, name, description, flags, "
 				  "part, category, footprint, "
 				  "minQuantity, targetQuantity, "
 				  "quantityUnits "
@@ -696,6 +730,7 @@ class Database(QObject):
 					   int(d[6]),
 					   int(d[7]),
 					   int(d[8]),
+					   int(d[9]),
 					   id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -722,7 +757,7 @@ class Database(QObject):
 			c = self.db.cursor()
 			if stockItem.inDatabase(self):
 				c.execute("UPDATE stock "
-					  "SET name=?, description=?, "
+					  "SET name=?, description=?, flags=?, "
 					  "part=?, "
 					  "category=?, footprint=?, "
 					  "minQuantity=?, targetQuantity=?, "
@@ -730,6 +765,7 @@ class Database(QObject):
 					  "WHERE id=?;",
 					  (toBase64(stockItem.name),
 					   toBase64(stockItem.description),
+					   int(stockItem.flags),
 					   int(stockItem.part),
 					   int(stockItem.category),
 					   int(stockItem.footprint),
@@ -739,13 +775,14 @@ class Database(QObject):
 					   int(stockItem.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "stock(name, description, "
+					  "stock(name, description, flags, "
 					  "part, category, footprint, "
 					  "minQuantity, targetQuantity, "
 					  "quantityUnits) "
-					  "VALUES(?,?,?,?,?,?,?,?);",
+					  "VALUES(?,?,?,?,?,?,?,?,?);",
 					  (toBase64(stockItem.name),
 					   toBase64(stockItem.description),
+					   int(stockItem.flags),
 					   int(stockItem.part),
 					   int(stockItem.category),
 					   int(stockItem.footprint),
@@ -774,7 +811,7 @@ class Database(QObject):
 		id = Entity.toId(origin)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, "
+			c.execute("SELECT name, description, flags, "
 				  "stockItem, supplier, orderCode, "
 				  "price "
 				  "FROM origins "
@@ -787,8 +824,9 @@ class Database(QObject):
 				      fromBase64(data[1]),
 				      int(data[2]),
 				      int(data[3]),
-				      fromBase64(data[4]),
-				      float(data[5]),
+				      int(data[4]),
+				      fromBase64(data[5]),
+				      float(data[6]),
 				      id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -797,7 +835,7 @@ class Database(QObject):
 		stockItemId = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, "
+			c.execute("SELECT id, name, description, flags, "
 				  "supplier, orderCode, price "
 				  "FROM origins "
 				  "WHERE stockItem=?;",
@@ -807,10 +845,11 @@ class Database(QObject):
 				return []
 			return [ Origin(fromBase64(d[1]),
 					fromBase64(d[2]),
-					stockItemId,
 					int(d[3]),
-					fromBase64(d[4]),
-					float(d[5]),
+					stockItemId,
+					int(d[4]),
+					fromBase64(d[5]),
+					float(d[6]),
 					id=int(d[0]), db=self)
 				 for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -821,12 +860,13 @@ class Database(QObject):
 			c = self.db.cursor()
 			if origin.inDatabase(self):
 				c.execute("UPDATE origins "
-					  "SET name=?, description=?, "
+					  "SET name=?, description=?, flags=?, "
 					  "stockItem=?, supplier=?, "
 					  "orderCode=?, price=? "
 					  "WHERE id=?;",
 					  (toBase64(origin.name),
 					   toBase64(origin.description),
+					   int(origin.flags),
 					   int(origin.stockItem),
 					   int(origin.supplier),
 					   toBase64(origin.orderCode),
@@ -834,12 +874,13 @@ class Database(QObject):
 					   int(origin.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "origins(name, description, "
+					  "origins(name, description, flags, "
 					  "stockItem, supplier, "
 					  "orderCode, price) "
-					  "VALUES(?,?,?,?,?,?);",
+					  "VALUES(?,?,?,?,?,?,?);",
 					  (toBase64(origin.name),
 					   toBase64(origin.description),
+					   int(origin.flags),
 					   int(origin.stockItem),
 					   int(origin.supplier),
 					   toBase64(origin.orderCode),
@@ -866,7 +907,7 @@ class Database(QObject):
 		id = Entity.toId(storage)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, "
+			c.execute("SELECT name, description, flags, "
 				  "stockItem, location, quantity "
 				  "FROM storages "
 				  "WHERE id=?;",
@@ -879,6 +920,7 @@ class Database(QObject):
 				       int(data[2]),
 				       int(data[3]),
 				       int(data[4]),
+				       int(data[5]),
 				       id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -887,7 +929,7 @@ class Database(QObject):
 		stockItemId = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, "
+			c.execute("SELECT id, name, description, flags, "
 				  "location, quantity "
 				  "FROM storages "
 				  "WHERE stockItem=?;",
@@ -897,9 +939,10 @@ class Database(QObject):
 				return []
 			return [ Storage(fromBase64(d[1]),
 					 fromBase64(d[2]),
-					 stockItemId,
 					 int(d[3]),
+					 stockItemId,
 					 int(d[4]),
+					 int(d[5]),
 					 id=int(d[0]), db=self)
 				for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -910,23 +953,25 @@ class Database(QObject):
 			c = self.db.cursor()
 			if storage.inDatabase(self):
 				c.execute("UPDATE storages "
-					  "SET name=?, description=?, "
+					  "SET name=?, description=?, flags=?, "
 					  "stockItem=?, location=?, "
 					  "quantity=? "
 					  "WHERE id=?;",
 					  (toBase64(storage.name),
 					   toBase64(storage.description),
+					   int(storage.flags),
 					   int(storage.stockItem),
 					   int(storage.location),
 					   int(storage.quantity),
 					   int(storage.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "storages(name, description, "
+					  "storages(name, description, flags, "
 					  "stockItem, location, quantity) "
-					  "VALUES(?,?,?,?,?);",
+					  "VALUES(?,?,?,?,?,?);",
 					  (toBase64(storage.name),
 					   toBase64(storage.description),
+					   int(storage.flags),
 					   int(storage.stockItem),
 					   int(storage.location),
 					   int(storage.quantity)))

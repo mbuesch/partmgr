@@ -40,6 +40,6 @@ class LocationManageDialog(AbstractEntityManageDialog):
 			selectLocation)
 
 	def newEntity(self):
-		newLocation = Location("Unnamed", "", db=self.db)
+		newLocation = Location("Unnamed", db=self.db)
 		self.db.modifyLocation(newLocation)
 		self.updateData(newLocation)

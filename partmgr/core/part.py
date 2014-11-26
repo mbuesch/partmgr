@@ -26,10 +26,10 @@ from partmgr.core.util import *
 class Part(Entity):
 	"Part descriptor."
 
-	def __init__(self, name, description,
-		     category,
+	def __init__(self, name, description="", flags=0,
+		     category=None,
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Part")
 		self.category = Entity.toId(category)
 
@@ -56,6 +56,7 @@ class Part(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.id))
 		args.append(str(self.db))
 		return "Part(" + ", ".join(args) + ")"

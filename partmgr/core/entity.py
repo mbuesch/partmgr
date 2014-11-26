@@ -25,12 +25,15 @@ from partmgr.core.util import *
 class Entity(object):
 	"Abstract entity base class."
 
+	FLG_OFFSET = 8	# Offset for user-flags
+
 	NO_ID = -1	# Invalid ID
 
-	def __init__(self, name="", description="",
+	def __init__(self, name="", description="", flags=0,
 		     id=NO_ID, db=None, entityType="Entity"):
 		self.name = name
 		self.description = description
+		self.flags = flags
 		self.id = id
 		self.db = db
 		self.entityType = entityType
@@ -99,6 +102,10 @@ class Entity(object):
 
 	def __repr__(self):
 		args = []
+		args.append(str(self.name))
+		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.id))
 		args.append(str(self.db))
+		args.append(str(self.entityType))
 		return "Entity(" + ", ".join(args) + ")"

@@ -322,9 +322,7 @@ class Tree(QTreeView):
 		parentTreeItem = self.contextTreeItem
 		assert(parentTreeItem is None or\
 		       parentTreeItem.entityType == TreeItem.CATEGORY)
-		category = Category(
-			name = "New category",
-			description = "")
+		category = Category("New category")
 		newModelIndex = self.model().addCategory(parentTreeItem,
 							 category)
 
@@ -371,15 +369,7 @@ class Tree(QTreeView):
 
 	def addStockItem(self):
 		assert(self.contextTreeItem.entityType == TreeItem.CATEGORY)
-		stockItem = StockItem(
-			name = "",
-			description = "",
-			part = None,
-			category = None,
-			footprint = None,
-			minQuantity = 0,
-			targetQuantity = 0,
-			quantityUnits = StockItem.UNIT_PC)
+		stockItem = StockItem("")
 		newModelIndex = self.model().addStockItem(self.contextTreeItem,
 							  stockItem)
 

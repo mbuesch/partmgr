@@ -20,16 +20,20 @@
 #
 
 from partmgr.core.entity import *
+from partmgr.core.image import *
 from partmgr.core.util import *
 
 
 class Footprint(Entity):
 	"Footprint descriptor."
 
-	def __init__(self, name, description, image,
+	def __init__(self, name, description="", flags=0,
+		     image=None,
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Footprint")
+		if not image:
+			image = Image()
 		self.image = image
 
 	def syncDatabase(self):
@@ -51,6 +55,7 @@ class Footprint(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.image))
 		args.append(str(self.id))
 		args.append(str(self.db))

@@ -26,9 +26,10 @@ from partmgr.core.util import *
 class Supplier(Entity):
 	"Supplier descriptor."
 
-	def __init__(self, name, description, url,
+	def __init__(self, name, description="", flags=0,
+		     url="",
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Supplier")
 		self.url = url
 
@@ -51,6 +52,7 @@ class Supplier(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.url))
 		args.append(str(self.id))
 		args.append(str(self.db))

@@ -26,9 +26,9 @@ from partmgr.core.util import *
 class Category(Entity):
 	"Category descriptor."
 
-	def __init__(self, name, description, parent=None,
+	def __init__(self, name, description="", flags=0, parent=None,
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Category")
 		self.parent = Entity.toId(parent)
 
@@ -69,6 +69,7 @@ class Category(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.parent))
 		args.append(str(self.id))
 		args.append(str(self.db))

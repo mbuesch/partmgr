@@ -126,7 +126,8 @@ class PartManageDialog(AbstractEntityManageDialog):
 		self.editWidget.updateData(part)
 
 	def newEntity(self):
-		newPart = Part("Unnamed", "", self.stockItem.category,
-			       db=self.stockItem.db)
+		newPart = Part("Unnamed",
+			       category = self.stockItem.category,
+			       db = self.stockItem.db)
 		self.db.modifyPart(newPart)
 		self.updateData(newPart)

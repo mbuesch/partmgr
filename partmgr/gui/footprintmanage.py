@@ -125,6 +125,6 @@ class FootprintManageDialog(AbstractEntityManageDialog):
 		self.editWidget.updateData(footprint)
 
 	def newEntity(self):
-		newFootprint = Footprint("Unnamed", "", Image(), db=self.db)
+		newFootprint = Footprint("Unnamed", db=self.db)
 		self.db.modifyFootprint(newFootprint)
 		self.updateData(newFootprint)

@@ -82,11 +82,11 @@ class StockItem(Entity):
 		UNIT_CUM	: ("m^3", "cubic meter"),
 	}
 
-	def __init__(self, name, description,
-		     part, category, footprint,
-		     minQuantity, targetQuantity, quantityUnits,
+	def __init__(self, name, description="", flags=0,
+		     part=None, category=None, footprint=None,
+		     minQuantity=0, targetQuantity=0, quantityUnits=UNIT_PC,
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "StockItem")
 		self.part = Entity.toId(part)
 		self.category = Entity.toId(category)
@@ -214,6 +214,7 @@ class StockItem(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.category))
 		args.append(str(self.footprint))
 		args.append(str(self.minQuantity))

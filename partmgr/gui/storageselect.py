@@ -81,11 +81,6 @@ class StoragesSelectWidget(GroupSelectWidget):
 		stockItem = self.currentStockItem
 		if not stockItem:
 			return
-		storage = Storage(
-			name = "",
-			description = "",
-			stockItem = stockItem,
-			location = None,
-			quantity = 0)
+		storage = Storage("", stockItem = stockItem)
 		stockItem.db.modifyStorage(storage)
 		self.updateData(stockItem)

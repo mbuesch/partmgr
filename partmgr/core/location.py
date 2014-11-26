@@ -26,9 +26,9 @@ from partmgr.core.util import *
 class Location(Entity):
 	"Location descriptor."
 
-	def __init__(self, name, description,
+	def __init__(self, name, description="", flags=0,
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Location")
 
 	def syncDatabase(self):
@@ -43,6 +43,7 @@ class Location(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.id))
 		args.append(str(self.db))
 		return "Location(" + ", ".join(args) + ")"

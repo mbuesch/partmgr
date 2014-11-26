@@ -139,13 +139,6 @@ class OriginsSelectWidget(GroupSelectWidget):
 		stockItem = self.currentStockItem
 		if not stockItem:
 			return
-		origin = Origin(
-			name = "",
-			description = "",
-			stockItem = stockItem,
-			supplier = None,
-			orderCode = "",
-			price = 0.0
-		)
+		origin = Origin("", stockItem = stockItem)
 		stockItem.db.modifyOrigin(origin)
 		self.updateData(stockItem)

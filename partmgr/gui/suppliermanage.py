@@ -83,6 +83,6 @@ class SupplierManageDialog(AbstractEntityManageDialog):
 		self.editWidget.updateData(supplier)
 
 	def newEntity(self):
-		newSupplier = Supplier("Unnamed", "", "", db=self.db)
+		newSupplier = Supplier("Unnamed", db=self.db)
 		self.db.modifySupplier(newSupplier)
 		self.updateData(newSupplier)

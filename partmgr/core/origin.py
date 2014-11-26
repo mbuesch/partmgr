@@ -26,11 +26,11 @@ from partmgr.core.util import *
 class Origin(Entity):
 	"Item origin descriptor."
 
-	def __init__(self, name, description,
-		     stockItem, supplier, orderCode,
-		     price,
+	def __init__(self, name, description="", flags=0,
+		     stockItem=None, supplier=None, orderCode="",
+		     price=0.0,
 		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description,
+		Entity.__init__(self, name, description, flags,
 				id, db, "Origin")
 		self.stockItem = Entity.toId(stockItem)
 		self.supplier = Entity.toId(supplier)
@@ -75,6 +75,7 @@ class Origin(Entity):
 		args = []
 		args.append(str(self.name))
 		args.append(str(self.description))
+		args.append(str(self.flags))
 		args.append(str(self.stockItem))
 		args.append(str(self.supplier))
 		args.append(str(self.orderCode))

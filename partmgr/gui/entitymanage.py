@@ -88,22 +88,21 @@ class AbstractEntityManageDialog(QDialog):
 		rightLayout.setRowStretch(y, 1)
 		y += 1
 
-		if entFlags & self.HIDE_DELBUTTON == 0:
-			self.delButton = QPushButton("Delete")
-			rightLayout.addWidget(self.delButton, y, 0, 1, 2)
-			y += 1
-			self.delButton.released.connect(self.delEntity)
+		self.layout().addLayout(rightLayout, 1, 1, 5, 1)
 
+		buttonsLayout = QHBoxLayout()
 		if entFlags & self.HIDE_NEWBUTTON == 0:
-			self.newButton = QPushButton("Create new")
-			rightLayout.addWidget(self.newButton, y, 0, 1, 2)
-			y += 1
+			self.newButton = QPushButton("Create &new")
+			buttonsLayout.addWidget(self.newButton)
 			self.newButton.released.connect(self.newEntity)
+		if entFlags & self.HIDE_DELBUTTON == 0:
+			self.delButton = QPushButton("&Delete")
+			buttonsLayout.addWidget(self.delButton)
+			self.delButton.released.connect(self.delEntity)
+		self.layout().addLayout(buttonsLayout, 5, 0)
 
-		self.layout().addLayout(rightLayout, 1, 1, 4, 1)
-
-		self.closeButton = QPushButton("Close window")
-		self.layout().addWidget(self.closeButton, 5, 0, 1, 3)
+		self.closeButton = QPushButton("&Close window")
+		self.layout().addWidget(self.closeButton, 6, 0, 1, 3)
 
 		# Pin the title height
 		self.titleLabel.setFixedHeight(

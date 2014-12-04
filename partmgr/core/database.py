@@ -62,14 +62,14 @@ class Database(QObject):
 						data = self.DB_VERSION)
 				self.modifyParameter(ver)
 			else:
-				ver = self.getParameterByName(
+				ver = self.getGlobalParameter(
 					"partmgr_db_version")
 				ver = ver.getDataInt() if ver else None
 				if ver is None or ver != self.DB_VERSION:
 					raise PartMgrError("Invalid database "
 						    "version")
 			self.filename = filename
-			self.__setParameterDefaults()
+			self.__setUserParameterDefaults()
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
 
@@ -81,7 +81,7 @@ class Database(QObject):
 		try:
 			rev = None
 			try:
-				rev = self.getParameterByName("partmgr_db_revision")
+				rev = self.getGlobalParameter("partmgr_db_revision")
 				if not rev:
 					raise ValueError
 				revNr = rev.getDataInt()
@@ -189,14 +189,16 @@ class Database(QObject):
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
 
-	def getParameterByName(self, paramName):
+	def getParameterByParent(self, paramName, parentType, parent):
 		try:
 			c = self.db.cursor()
 			c.execute("SELECT id, description, flags, "
 				  "parentType, parent, data "
 				  "FROM parameters "
-				  "WHERE name=?;",
-				  (toBase64(paramName),))
+				  "WHERE name=? AND parentType=? AND parent=?;",
+				  (toBase64(paramName),
+				   int(parentType),
+				   Entity.toId(parent)))
 			data = c.fetchone()
 			if not data:
 				return None
@@ -210,18 +212,47 @@ class Database(QObject):
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
 
+	def getAllParametersByParent(self, parentType, parent):
+		parentId = Entity.toId(parent)
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT id, name, description, flags, "
+				  "data "
+				  "FROM parameters "
+				  "WHERE parentType=? AND parent=? "
+				  "ORDER BY id;",
+				  (parentType, parentId))
+			data = c.fetchall()
+			if not data:
+				return []
+			return [ Parameter(fromBase64(d[1]),
+					   fromBase64(d[2]),
+					   int(d[3]),
+					   parentType,
+					   parent,
+					   fromBase64(d[4], toBytes=True),
+					   id=int(d[0]), db=self)
+				for d in data ]
+		except (sql.Error, ValueError) as e:
+			self.__databaseError(e)
+
+	def getGlobalParameter(self, paramName):
+		return self.getParameterByParent(paramName,
+						 Parameter.PTYPE_GLOBAL,
+						 Entity.NO_ID)
+
 	def getUserParameters(self):
 		ret = []
 		for name in self.USER_PARAMS.keys():
-			param = self.getParameterByName(name)
+			param = self.getGlobalParameter(name)
 			if param:
 				ret.append(param)
 		ret.sort(key=lambda p: p.getName())
 		return ret
 
-	def __setParameterDefaults(self):
+	def __setUserParameterDefaults(self):
 		for name in self.USER_PARAMS.keys():
-			if self.getParameterByName(name):
+			if self.getGlobalParameter(name):
 				# Does exist. Skip it.
 				continue
 			param = Parameter(name,

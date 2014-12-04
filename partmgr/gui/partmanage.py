@@ -40,6 +40,8 @@ class PartEditWidget(QWidget):
 		self.layout().addWidget(self.label0, 0, 1)
 		self.text0 = QLineEdit(self)
 		self.layout().addWidget(self.text0, 0, 2)
+		self.del0 = QPushButton("Remove", self)
+		self.layout().addWidget(self.del0, 0, 3)
 
 		self.name1 = QLineEdit(self)
 		self.layout().addWidget(self.name1, 1, 0)

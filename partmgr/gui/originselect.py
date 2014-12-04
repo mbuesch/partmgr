@@ -37,7 +37,7 @@ class PriceSpinBox(ProtectedDoubleSpinBox):
 		self.setMaximum(16777215.0)
 		self.setDecimals(2)
 		self.setSingleStep(0.1)
-		currency = db.getParameterByName("currency")
+		currency = db.getGlobalParameter("currency")
 		currency = Param_Currency.CURRNAMES[currency.getDataInt()][0]
 		self.setSuffix(" " + currency)
 

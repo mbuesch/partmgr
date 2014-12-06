@@ -25,85 +25,96 @@ from partmgr.gui.util import *
 from partmgr.core.part import *
 
 
+class PartUserParamWidget(QWidget):
+	remove = Signal(QWidget)
+
+	def __init__(self, param, parent=None):
+		QWidget.__init__(self, parent)
+		self.setLayout(QGridLayout())
+		self.layout().setContentsMargins(QMargins())
+
+		self.param = param
+
+		self.layout().setColumnStretch(0, 1)
+		self.layout().setColumnStretch(2, 2)
+
+		self.name = QLineEdit(self)
+		self.layout().addWidget(self.name, 0, 0)
+		label = QLabel(":", self)
+		self.layout().addWidget(label, 0, 1)
+		self.text = QLineEdit(self)
+		self.layout().addWidget(self.text, 0, 2)
+		self.delButton = QPushButton("Remove", self)
+		self.layout().addWidget(self.delButton, 0, 3)
+
+		self.name.setText(self.param.getName())
+		self.text.setText(self.param.getDataString())
+
+		self.name.textChanged.connect(self.__handleNameChange)
+		self.text.textChanged.connect(self.__handleTextChange)
+		self.delButton.released.connect(self.__handleDel)
+
+	def __handleDel(self):
+		self.remove.emit(self)
+
+	def __handleNameChange(self, newName):
+		self.param.setName(newName)
+
+	def __handleTextChange(self, newText):
+		self.param.setData(newText)
+
 class PartEditWidget(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self, parent)
 		self.setLayout(QGridLayout())
 		self.layout().setContentsMargins(QMargins())
 
-		self.layout().setColumnStretch(0, 1)
-		self.layout().setColumnStretch(2, 2)
+		self.layout().setColumnStretch(0, 2)
+		self.layout().setColumnStretch(1, 1)
 
-		self.name0 = QLineEdit(self)
-		self.layout().addWidget(self.name0, 0, 0)
-		self.label0 = QLabel(":", self)
-		self.layout().addWidget(self.label0, 0, 1)
-		self.text0 = QLineEdit(self)
-		self.layout().addWidget(self.text0, 0, 2)
-		self.del0 = QPushButton("Remove", self)
-		self.layout().addWidget(self.del0, 0, 3)
+		self.userParamLayout = QVBoxLayout()
+		self.userParamWidgets = []
+		self.layout().addLayout(self.userParamLayout, 0, 0, 1, 2)
 
-		self.name1 = QLineEdit(self)
-		self.layout().addWidget(self.name1, 1, 0)
-		self.label1 = QLabel(":", self)
-		self.layout().addWidget(self.label1, 1, 1)
-		self.text1 = QLineEdit(self)
-		self.layout().addWidget(self.text1, 1, 2)
-
-		self.name2 = QLineEdit(self)
-		self.layout().addWidget(self.name2, 2, 0)
-		self.label2 = QLabel(":", self)
-		self.layout().addWidget(self.label2, 2, 1)
-		self.text2 = QLineEdit(self)
-		self.layout().addWidget(self.text2, 2, 2)
+		self.newUserParamButton = QPushButton("New parameter")
+		self.layout().addWidget(self.newUserParamButton, 1, 1)
 
 		self.currentPart = None
 		self.changeBlocked = 0
 
-		self.name0.textChanged.connect(self.__textChanged)
-		self.text0.textChanged.connect(self.__textChanged)
-		self.name1.textChanged.connect(self.__textChanged)
-		self.text1.textChanged.connect(self.__textChanged)
-		self.name2.textChanged.connect(self.__textChanged)
-		self.text2.textChanged.connect(self.__textChanged)
+		self.newUserParamButton.released.connect(self.__newUserParam)
+
+	def __newUserParam(self):
+		if not self.currentPart:
+			return
+		param = Parameter("<unnamed>",
+				  data = "<enter data here>")
+		self.currentPart.addParameter(param)
+		self.updateData(self.currentPart)
+
+	def __delUserParam(self, paramWidget):
+		paramWidget.param.delete()
+		self.updateData(self.currentPart)
 
 	def updateData(self, part):
 		self.changeBlocked += 1
 
 		self.currentPart = part
 
-		self.name0.setEnabled(bool(part))
-		self.name0.clear()
-		self.text0.setEnabled(bool(part))
-		self.text0.clear()
-		self.name1.setEnabled(bool(part))
-		self.name1.clear()
-		self.text1.setEnabled(bool(part))
-		self.text1.clear()
-		self.name2.setEnabled(bool(part))
-		self.name2.clear()
-		self.text2.setEnabled(bool(part))
-		self.text2.clear()
+		while self.userParamWidgets:
+			widget = self.userParamWidgets.pop(0)
+			self.userParamLayout.removeWidget(widget)
+			widget.deleteLater()
 
 		if part:
-			pass#TODO
-#			self.name0.setText(part.getText0()[0])
-#			self.text0.setText(part.getText0()[1])
-#			self.name1.setText(part.getText1()[0])
-#			self.text1.setText(part.getText1()[1])
-#			self.name2.setText(part.getText2()[0])
-#			self.text2.setText(part.getText2()[1])
+			params = part.getAllParameters()
+			for param in params:
+				paramWidget = PartUserParamWidget(param)
+				paramWidget.remove.connect(self.__delUserParam)
+				self.userParamWidgets.append(paramWidget)
+				self.userParamLayout.addWidget(paramWidget)
 
 		self.changeBlocked -= 1
-
-	def __textChanged(self, unused):
-		if self.changeBlocked:
-			return
-		if not self.currentPart:
-			return
-#TODO		self.currentPart.setText0(self.name0.text(), self.text0.text())
-#		self.currentPart.setText1(self.name1.text(), self.text1.text())
-#		self.currentPart.setText2(self.name2.text(), self.text2.text())
 
 class PartManageDialog(AbstractEntityManageDialog):
 	"Part create/modify/delete dialog"

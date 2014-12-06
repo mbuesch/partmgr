@@ -32,7 +32,7 @@ class ProtectedSpinBox(AbstractProtectedWidget):
 		self.spin = QSpinBox(self)
 		self.spin.setAccelerated(True)
 		self.setKeyboardTracking(True)
-		self.addEditWidget(self.spin)
+		self.setEditWidget(self.spin)
 
 		self.__sync()
 		self.setProtected()

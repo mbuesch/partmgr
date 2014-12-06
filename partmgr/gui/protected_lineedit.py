@@ -30,7 +30,7 @@ class ProtectedLineEdit(AbstractProtectedWidget):
 		AbstractProtectedWidget.__init__(self, parent)
 
 		self.lineEdit = QLineEdit(self)
-		self.addEditWidget(self.lineEdit)
+		self.setEditWidget(self.lineEdit)
 
 		self.setProtected()
 

@@ -26,6 +26,7 @@ class AbstractProtectedWidget(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self, parent)
 		self.setLayout(QVBoxLayout(self))
+		self.layout().setContentsMargins(QMargins())
 
 		self.label = QLabel(self)
 		self.label.setFrameShape(QFrame.Panel)
@@ -35,31 +36,46 @@ class AbstractProtectedWidget(QWidget):
 		self.label.setFont(font)
 		self.layout().addWidget(self.label)
 
-		self.editWidgets = []
+		self.editWidget = None
 
 		self.setProtected()
 
-	def addEditWidget(self, widget):
+	def minimumSizeHint(self):
+		size = QWidget.minimumSizeHint(self)
+		if self.editWidget:
+			edSize = self.editWidget.minimumSizeHint()
+			size.setWidth(max(size.width(), edSize.width()))
+			size.setHeight(max(size.height(), edSize.height()))
+		return size
+
+	def sizeHint(self):
+		size = QWidget.sizeHint(self)
+		if self.editWidget:
+			edSize = self.editWidget.sizeHint()
+			size.setWidth(max(size.width(), edSize.width()))
+			size.setHeight(max(size.height(), edSize.height()))
+		return size
+
+	def setEditWidget(self, widget):
+		if self.editWidget:
+			self.layout().removeWidget(self.editWidget)
 		self.layout().addWidget(widget)
-		self.editWidgets.append(widget)
+		self.editWidget = widget
 
 	def setProtected(self, prot=True):
 		if prot:
-			for widget in self.editWidgets:
-				widget.hide()
+			if self.editWidget:
+				self.editWidget.hide()
 			self.label.show()
-			margins = QMargins(5, 0, 5, 0)
 		else:
-			for widget in self.editWidgets:
-				widget.show()
+			if self.editWidget:
+				self.editWidget.show()
 			self.label.hide()
-			margins = QMargins()
-		self.layout().setContentsMargins(margins)
 
 	def clear(self):
 		self.label.clear()
-		for widget in self.editWidgets:
-			widget.clear()
+		if self.editWidget:
+			self.editWidget.clear()
 
 	def setReadOnlyText(self, text):
 		self.label.setText(text)

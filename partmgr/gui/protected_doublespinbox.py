@@ -45,7 +45,7 @@ class ProtectedDoubleSpinBox(AbstractProtectedWidget):
 		self.spin = self._DoubleSpinBox(self)
 		self.spin.setAccelerated(True)
 		self.setKeyboardTracking(True)
-		self.addEditWidget(self.spin)
+		self.setEditWidget(self.spin)
 
 		self.__sync()
 		self.setProtected()

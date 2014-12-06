@@ -30,7 +30,7 @@ class ProtectedComboBox(AbstractProtectedWidget):
 		AbstractProtectedWidget.__init__(self, parent)
 
 		self.combo = QComboBox(self)
-		self.addEditWidget(self.combo)
+		self.setEditWidget(self.combo)
 
 		self.setProtected()
 

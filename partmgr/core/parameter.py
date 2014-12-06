@@ -58,6 +58,10 @@ class Parameter(Entity):
 	def getParentType(self):
 		return self.parentType
 
+	def setParent(self, parent):
+		self.parent = Entity.toId(parent)
+		self.syncDatabase()
+
 	def getData(self):
 		return self.data
 

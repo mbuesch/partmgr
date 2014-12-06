@@ -29,6 +29,9 @@ class Entity(object):
 
 	NO_ID = -1	# Invalid ID
 
+	# Set to PTYPE_..., if this entity supports parameters
+	PARAMETER_PTYPE = None
+
 	def __init__(self, name="", description="", flags=0,
 		     id=NO_ID, db=None, entityType="Entity"):
 		self.name = name
@@ -57,6 +60,18 @@ class Entity(object):
 	def setDescription(self, newDescription):
 		self.description = newDescription
 		self.syncDatabase()
+
+	def getAllParameters(self):
+		assert(self.PARAMETER_PTYPE is not None)
+		return self.db.getAllParametersByParent(self.PARAMETER_PTYPE, self)
+
+	def addParameter(self, newParameter):
+		assert(self.PARAMETER_PTYPE is not None)
+		newParameter.setParentType(self.PARAMETER_PTYPE)
+		newParameter.setParent(self)
+		newParameter.id = Entity.NO_ID
+		self.db.modifyParameter(newParameter)
+		return newParameter
 
 	@staticmethod
 	def isValidId(entityId):

@@ -21,10 +21,13 @@
 
 from partmgr.core.entity import *
 from partmgr.core.util import *
+from partmgr.core.parameter import *
 
 
 class Part(Entity):
 	"Part descriptor."
+
+	PARAMETER_PTYPE = Parameter.PTYPE_PART
 
 	def __init__(self, name, description="", flags=0,
 		     category=None,

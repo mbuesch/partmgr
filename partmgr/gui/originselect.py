@@ -33,13 +33,23 @@ from partmgr.core.parameter import *
 class PriceSpinBox(ProtectedDoubleSpinBox):
 	def __init__(self, db, parent=None):
 		ProtectedDoubleSpinBox.__init__(self, parent)
-		self.setMinimum(-16777215.0)
+		self.setMinimum(Origin.NO_PRICE)
 		self.setMaximum(16777215.0)
 		self.setDecimals(2)
 		self.setSingleStep(0.1)
 		currency = db.getGlobalParameter("currency")
 		currency = Param_Currency.CURRNAMES[currency.getDataInt()][0]
 		self.setSuffix(" " + currency)
+
+	def textFromValue(self, value):
+		if value < 0.0:
+			return "<no price>"
+		return ProtectedDoubleSpinBox.textFromValue(self, value)
+
+	def valueFromText(self, text):
+		if text == "<no price>":
+			return Origin.NO_PRICE
+		return ProtectedDoubleSpinBox.valueFromText(self, text)
 
 class OriginWidget(QWidget):
 	codeChanged = Signal(str)
@@ -55,8 +65,9 @@ class OriginWidget(QWidget):
 		label = QLabel("Price:", self)
 		priceLayout.addWidget(label)
 
+		price = origin.getPrice()
 		self.price = PriceSpinBox(origin.db, self)
-		self.price.setValue(origin.getPrice())
+		self.price.setValue(Origin.NO_PRICE if price is None else price)
 		priceLayout.addWidget(self.price)
 
 		self.layout().addLayout(priceLayout)

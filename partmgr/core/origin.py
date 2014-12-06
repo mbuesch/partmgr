@@ -26,9 +26,11 @@ from partmgr.core.util import *
 class Origin(Entity):
 	"Item origin descriptor."
 
+	NO_PRICE = -0.1
+
 	def __init__(self, name, description="", flags=0,
 		     stockItem=None, supplier=None, orderCode="",
-		     price=0.0,
+		     price=NO_PRICE,
 		     id=Entity.NO_ID, db=None):
 		Entity.__init__(self, name, description, flags,
 				id, db, "Origin")
@@ -60,10 +62,17 @@ class Origin(Entity):
 		self.orderCode = newOrderCode
 		self.syncDatabase()
 
+	def hasPrice(self):
+		return self.price >= 0.0
+
 	def getPrice(self):
+		if not self.hasPrice():
+			return None
 		return self.price
 
 	def setPrice(self, newPrice):
+		if newPrice is None:
+			newPrice = self.NO_PRICE
 		self.price = round(float(newPrice), 5)
 		self.syncDatabase()
 

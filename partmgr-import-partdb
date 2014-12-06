@@ -208,7 +208,7 @@ def importFromPartdb(db, conn):
 		try:
 			price = priceMap[srcPart.id]
 		except KeyError:
-			price = 0.0
+			price = Origin.NO_PRICE
 		origin = Origin(name = "",
 				stockItem = stockItem,
 				supplier = supp,

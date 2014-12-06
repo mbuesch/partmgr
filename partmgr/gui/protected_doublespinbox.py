@@ -26,10 +26,23 @@ from partmgr.gui.util import *
 class ProtectedDoubleSpinBox(AbstractProtectedWidget):
 	valueChanged = Signal(float)
 
+	class _DoubleSpinBox(QDoubleSpinBox):
+		def textFromValue(self, value):
+			text = self.parent().textFromValue(value)
+			if text is None:
+				return QDoubleSpinBox.textFromValue(self, value)
+			return text
+
+		def valueFromText(self, text):
+			value = self.parent().valueFromText(text)
+			if value is None:
+				return QDoubleSpinBox.valueFromText(self, text)
+			return value
+
 	def __init__(self, parent=None):
 		AbstractProtectedWidget.__init__(self, parent)
 
-		self.spin = QDoubleSpinBox(self)
+		self.spin = self._DoubleSpinBox(self)
 		self.spin.setAccelerated(True)
 		self.setKeyboardTracking(True)
 		self.addEditWidget(self.spin)
@@ -38,6 +51,12 @@ class ProtectedDoubleSpinBox(AbstractProtectedWidget):
 		self.setProtected()
 
 		self.spin.valueChanged.connect(self.__valueChanged)
+
+	def textFromValue(self, value):
+		return None
+
+	def valueFromText(self, text):
+		return None
 
 	def setKeyboardTracking(self, on=True):
 		self.spin.setKeyboardTracking(on)
@@ -62,9 +81,8 @@ class ProtectedDoubleSpinBox(AbstractProtectedWidget):
 		self.spin.setValue(value)
 
 	def __sync(self):
-		fmt = "%." + str(self.spin.decimals()) + "f%s"
-		self.setReadOnlyText(fmt % (self.spin.value(),
-					    self.spin.suffix()))
+		self.setReadOnlyText(self.spin.cleanText() +\
+				     self.spin.suffix())
 
 	def __valueChanged(self, newValue):
 		self.__sync()

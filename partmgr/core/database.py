@@ -46,11 +46,14 @@ class Database(QObject):
 		"currency"	: ("Price currency", Param_Currency.CURR_EUR),
 	}
 
-	def __init__(self, filename):
+	def __init__(self, filename, withCommitTimer=True):
 		QObject.__init__(self)
-		self.__commitTimer = QTimer(self)
-		self.__commitTimer.setSingleShot(True)
-		self.__commitTimer.timeout.connect(self.__commitTimerTrig)
+		if withCommitTimer:
+			self.__commitTimer = QTimer(self)
+			self.__commitTimer.setSingleShot(True)
+			self.__commitTimer.timeout.connect(self.__commitTimerTrig)
+		else:
+			self.__commitTimer = None
 		self.__commitTimerSchedBlock = 0
 		try:
 			self.db = sql.connect(str(filename))
@@ -107,6 +110,8 @@ class Database(QObject):
 
 	def scheduleCommit(self, seconds=5.0):
 		if self.__commitTimerSchedBlock:
+			return
+		if not self.__commitTimer:
 			return
 		self.__commitTimer.start(int(round(seconds * 1000)))
 

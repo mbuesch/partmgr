@@ -67,7 +67,9 @@ class SupplierManageDialog(AbstractEntityManageDialog):
 	def __init__(self, db, parent=None):
 		self.editWidget = SupplierEditWidget()
 		AbstractEntityManageDialog.__init__(self, db,
-			"Manage suppliers", self.editWidget, parent)
+			"Manage suppliers", self.editWidget,
+			parent,
+			AbstractEntityManageDialog.NO_PARAMETERS)
 
 		self.nameLabel.setText("Supplier name:")
 

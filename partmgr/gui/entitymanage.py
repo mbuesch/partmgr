@@ -21,6 +21,46 @@
 
 from partmgr.gui.util import *
 
+from partmgr.core.parameter import *
+
+
+class UserParamWidget(QWidget):
+	remove = Signal(QWidget)
+
+	def __init__(self, param, parent=None):
+		QWidget.__init__(self, parent)
+		self.setLayout(QGridLayout())
+		self.layout().setContentsMargins(QMargins())
+
+		self.param = param
+
+		self.layout().setColumnStretch(0, 1)
+		self.layout().setColumnStretch(2, 2)
+
+		self.name = QLineEdit(self)
+		self.layout().addWidget(self.name, 0, 0)
+		label = QLabel(":", self)
+		self.layout().addWidget(label, 0, 1)
+		self.text = QLineEdit(self)
+		self.layout().addWidget(self.text, 0, 2)
+		self.delButton = QPushButton("Remove", self)
+		self.layout().addWidget(self.delButton, 0, 3)
+
+		self.name.setText(self.param.getName())
+		self.text.setText(self.param.getDataString())
+
+		self.name.textChanged.connect(self.__handleNameChange)
+		self.text.textChanged.connect(self.__handleTextChange)
+		self.delButton.released.connect(self.__handleDel)
+
+	def __handleDel(self):
+		self.remove.emit(self)
+
+	def __handleNameChange(self, newName):
+		self.param.setName(newName)
+
+	def __handleTextChange(self, newText):
+		self.param.setData(newText)
 
 class AbstractEntityManageDialog(QDialog):
 	"Abstract Entity manage dialog"
@@ -30,6 +70,7 @@ class AbstractEntityManageDialog(QDialog):
 	HIDE_NEWBUTTON		= 1 << 1
 	READONLY_DESC		= 1 << 2
 	READONLY_NAME		= 1 << 3
+	NO_PARAMETERS		= 1 << 4
 
 	class ListItem(QListWidgetItem):
 		def __init__(self, entity):
@@ -80,6 +121,16 @@ class AbstractEntityManageDialog(QDialog):
 		if entFlags & self.READONLY_DESC:
 			self.descEdit.setEnabled(False)
 
+		if entFlags & self.NO_PARAMETERS == 0:
+			self.userParamLayout = QVBoxLayout()
+			self.userParamWidgets = []
+			rightLayout.addLayout(self.userParamLayout, y, 0, 1, 2)
+			y += 1
+
+			self.newUserParamButton = QPushButton("New parameter")
+			rightLayout.addWidget(self.newUserParamButton, y, 1)
+			y += 1
+
 		if entitySpecificWidget:
 			rightLayout.addWidget(entitySpecificWidget,
 					      y, 0, 1, 2)
@@ -114,6 +165,22 @@ class AbstractEntityManageDialog(QDialog):
 						self.entSelChanged)
 		self.nameEdit.textChanged.connect(self.nameChanged)
 		self.closeButton.released.connect(self.accept)
+		if entFlags & self.NO_PARAMETERS == 0:
+			self.newUserParamButton.released.connect(self.__newUserParam)
+
+	def __newUserParam(self):
+		curItem = self.entityList.currentItem()
+		if not curItem:
+			return
+		param = Parameter("<unnamed>",
+				  data = "<enter data here>")
+		curItem.getEntity().addParameter(param)
+		self.entSelChanged(curItem, curItem)
+
+	def __delUserParam(self, paramWidget):
+		paramWidget.param.delete()
+		curItem = self.entityList.currentItem()
+		self.entSelChanged(curItem, curItem)
 
 	def updateData(self, entities=[], selectEntity=None):
 		self.entityList.clear()
@@ -147,6 +214,18 @@ class AbstractEntityManageDialog(QDialog):
 			self.descEdit.setEnabled(bool(item))
 		if self.entFlags & self.HIDE_DELBUTTON == 0:
 			self.delButton.setEnabled(bool(item))
+		if self.entFlags & self.NO_PARAMETERS == 0:
+			while self.userParamWidgets:
+				widget = self.userParamWidgets.pop(0)
+				self.userParamLayout.removeWidget(widget)
+				widget.deleteLater()
+			if item:
+				params = item.getEntity().getAllParameters()
+				for param in params:
+					paramWidget = UserParamWidget(param)
+					paramWidget.remove.connect(self.__delUserParam)
+					self.userParamWidgets.append(paramWidget)
+					self.userParamLayout.addWidget(paramWidget)
 
 		self.updateBlocked -= 1
 

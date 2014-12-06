@@ -89,7 +89,8 @@ class GlobalParametersManageDialog(AbstractEntityManageDialog):
 			AbstractEntityManageDialog.HIDE_DELBUTTON |\
 			AbstractEntityManageDialog.HIDE_NEWBUTTON |\
 			AbstractEntityManageDialog.READONLY_DESC |\
-			AbstractEntityManageDialog.READONLY_NAME)
+			AbstractEntityManageDialog.READONLY_NAME |\
+			AbstractEntityManageDialog.NO_PARAMETERS)
 
 	def updateData(self, selectPart=None):
 		AbstractEntityManageDialog.updateData(

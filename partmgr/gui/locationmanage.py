@@ -30,7 +30,8 @@ class LocationManageDialog(AbstractEntityManageDialog):
 
 	def __init__(self, db, parent=None):
 		AbstractEntityManageDialog.__init__(self, db,
-			"Manage locations", None, parent)
+			"Manage locations", None, parent,
+			AbstractEntityManageDialog.NO_PARAMETERS)
 
 		self.nameLabel.setText("Location name:")
 

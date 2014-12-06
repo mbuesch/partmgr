@@ -109,7 +109,9 @@ class FootprintManageDialog(AbstractEntityManageDialog):
 	def __init__(self, db, parent=None):
 		self.editWidget = FootprintEditWidget()
 		AbstractEntityManageDialog.__init__(self, db,
-			"Manage part footprints", self.editWidget, parent)
+			"Manage part footprints", self.editWidget,
+			parent,
+			AbstractEntityManageDialog.NO_PARAMETERS)
 
 		self.nameLabel.setText("Footprint name:")
 

@@ -30,56 +30,86 @@ class StockItem(Entity):
 	UNIT_PC		= 0	# Pieces
 	UNIT_PACK	= 1	# Packages
 
-	UNIT_MM		= 100	# Millimeter
-	UNIT_CM		= 101	# Centimeter
-	UNIT_DM		= 102	# Decimeter
-	UNIT_M		= 103	# Meter
-	UNIT_KM		= 104	# Kilometer
-	UNIT_AU		= 190	# Astronomical units
+	UNIT_PM		= 100	# Picometer
+	UNIT_NM		= 101	# Nanometer
+	UNIT_UM		= 102	# Micrometer
+	UNIT_MM		= 103	# Millimeter
+	UNIT_CM		= 104	# Centimeter
+	UNIT_DM		= 105	# Decimeter
+	UNIT_M		= 106	# Meter
+	UNIT_KM		= 107	# Kilometer
+	UNIT_AU		= 150	# Astronomical units
 
-	UNIT_MG		= 200	# Milligrams
-	UNIT_G		= 201	# Grams
-	UNIT_KG		= 202	# Kilograms
-	UNIT_T		= 203	# Tons
+	UNIT_PG		= 200	# Picograms
+	UNIT_NG		= 201	# Nanograms
+	UNIT_UG		= 202	# Micrograms
+	UNIT_MG		= 203	# Milligrams
+	UNIT_G		= 204	# Grams
+	UNIT_KG		= 205	# Kilograms
+	UNIT_T		= 206	# Tons
 
-	UNIT_SMM	= 300	# Square millimeter
-	UNIT_SCM	= 301	# Square centimeter
-	UNIT_SDM	= 302	# Square decimeter
-	UNIT_SM		= 303	# Square meter
+	UNIT_SPM	= 300	# Square picometer
+	UNIT_SNM	= 301	# Square nanometer
+	UNIT_SUM	= 302	# Square micrometer
+	UNIT_SMM	= 303	# Square millimeter
+	UNIT_SCM	= 304	# Square centimeter
+	UNIT_SDM	= 305	# Square decimeter
+	UNIT_SM		= 306	# Square meter
 
-	UNIT_ML		= 400	# Milliliter
-	UNIT_CL		= 401	# Centiliter
-	UNIT_L		= 402	# Liter
+	UNIT_PL		= 400	# Picoliter
+	UNIT_NL		= 401	# Nanoliter
+	UNIT_UL		= 402	# Microliter
+	UNIT_ML		= 403	# Milliliter
+	UNIT_CL		= 404	# Centiliter
+	UNIT_L		= 405	# Liter
 
-	UNIT_CMM	= 500	# Cubic millimeter
-	UNIT_CCM	= 501	# Cubic centimeter
-	UNIT_CDM	= 502	# Cubic decimeter
-	UNIT_CUM	= 503	# Cubic meter
+	UNIT_CPM	= 500	# Cubic picometer
+	UNIT_CNM	= 501	# Cubic nanometer
+	UNIT_CUM	= 502	# Cubic micrometer
+	UNIT_CMM	= 503	# Cubic millimeter
+	UNIT_CCM	= 504	# Cubic centimeter
+	UNIT_CDM	= 505	# Cubic decimeter
+	UNIT_CUBM	= 506	# Cubic meter
 
 	UNITNAMES = {
 		UNIT_PC		: ("pc", "pieces"),
 		UNIT_PACK	: ("pack", "packages"),
+		UNIT_PM		: ("pm", "picometer"),
+		UNIT_NM		: ("nm", "nanometer"),
+		UNIT_UM		: ("µm", "micrometer"),
 		UNIT_MM		: ("mm", "millimeter"),
 		UNIT_CM		: ("cm", "centimeter"),
 		UNIT_DM		: ("dm", "decimeter"),
 		UNIT_M		: ("m", "meter"),
 		UNIT_KM		: ("km", "kilometer"),
 		UNIT_AU		: ("au", "astronomical units"),
+		UNIT_PG		: ("pg", "picograms"),
+		UNIT_NG		: ("ng", "nanograms"),
+		UNIT_UG		: ("µg", "micrograms"),
 		UNIT_MG		: ("mg", "milligrams"),
 		UNIT_G		: ("g", "grams"),
 		UNIT_KG		: ("kg", "kilograms"),
-		UNIT_T		: ("t", "tons"),
+		UNIT_T		: ("t", "metric tons"),
+		UNIT_SPM	: ("pm^2", "square picometer"),
+		UNIT_SNM	: ("nm^2", "square nanometer"),
+		UNIT_SUM	: ("µm^2", "square micrometer"),
 		UNIT_SMM	: ("mm^2", "square millimeter"),
 		UNIT_SCM	: ("cm^2", "square centimeter"),
 		UNIT_SDM	: ("dm^2", "square decimeter"),
 		UNIT_SM		: ("m^2", "square meter"),
+		UNIT_PL		: ("pl", "picoliter"),
+		UNIT_NL		: ("nl", "nanoliter"),
+		UNIT_UL		: ("µl", "microliter"),
 		UNIT_ML		: ("ml", "milliliter"),
 		UNIT_CL		: ("cl", "centiliter"),
 		UNIT_L		: ("l", "liter"),
+		UNIT_CPM	: ("pm^3", "cubic picometer"),
+		UNIT_CNM	: ("nm^3", "cubic nanometer"),
+		UNIT_CUM	: ("µm^3", "cubic micrometer"),
 		UNIT_CMM	: ("mm^3", "cubic millimeter"),
 		UNIT_CCM	: ("cm^3", "cubic centimeter"),
 		UNIT_CDM	: ("dm^3", "cubic decimeter"),
-		UNIT_CUM	: ("m^3", "cubic meter"),
+		UNIT_CUBM	: ("m^3", "cubic meter"),
 	}
 
 	def __init__(self, name, description="", flags=0,

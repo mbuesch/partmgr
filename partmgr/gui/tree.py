@@ -283,27 +283,27 @@ class Tree(QTreeView):
 		menu = QMenu(self)
 		if treeItem:
 			if treeItem.entityType == TreeItem.CATEGORY:
-				menu.addAction("Add sub-category...",
+				menu.addAction("Add sub-&category...",
 					       self.addCategory)
-				menu.addAction("Add stock item...",
+				menu.addAction("Add &stock item...",
 					       self.addStockItem)
 				menu.addSeparator()
-				menu.addAction("Rename category",
+				menu.addAction("&Rename category",
 					       self.renameCategory)
-				menu.addAction("Delete category",
+				menu.addAction("&Delete category",
 					       self.delCategory)
 			elif treeItem.entityType == TreeItem.STOCKITEM:
-				menu.addAction("Rename stock item",
+				menu.addAction("R&ename stock item",
 					       self.renameStockItem)
-				menu.addAction("Delete stock item",
+				menu.addAction("De&lete stock item",
 					       self.delStockItem)
 			else:
 				assert(0)
 		else:
-			menu.addAction("Add root-category...", self.addCategory)
+			menu.addAction("Add &root-category...", self.addCategory)
 		menu.addSeparator()
-		menu.addAction("Collapse all", self.collapseAll)
-		menu.addAction("Expand all", self.expandAll)
+		menu.addAction("Colla&pse all", self.collapseAll)
+		menu.addAction("E&xpand all", self.expandAll)
 		menu.exec_(event.globalPos())
 		super(Tree, self).contextMenuEvent(event)
 

@@ -81,6 +81,8 @@ class Origin(Entity):
 		self.syncDatabase()
 
 	def __setPriceTimeStamp(self, newStamp):
+		if not newStamp:
+			newStamp = 0
 		if isinstance(newStamp, datetime.datetime):
 			newStamp = int(round(newStamp.timestamp()))
 		self.priceTimeStamp = int(newStamp)
@@ -93,6 +95,8 @@ class Origin(Entity):
 		self.syncDatabase()
 
 	def getPriceTimeStamp(self):
+		if not self.priceTimeStamp:
+			return None
 		return datetime.datetime.fromtimestamp(self.priceTimeStamp)
 
 	def delete(self):

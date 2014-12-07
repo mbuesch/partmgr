@@ -924,7 +924,7 @@ class Database(QObject):
 					   int(origin.supplier),
 					   toBase64(origin.orderCode),
 					   float(origin.price),
-					   int(origin.priceTimeStamp),
+					   int(origin.getPriceTimeStampInt()),
 					   int(origin.id)))
 			else:
 				c.execute("INSERT INTO "
@@ -940,7 +940,7 @@ class Database(QObject):
 					   int(origin.supplier),
 					   toBase64(origin.orderCode),
 					   float(origin.price),
-					   int(origin.priceTimeStamp)))
+					   int(origin.getPriceTimeStampInt())))
 				origin.id = c.lastrowid
 				origin.db = self
 			self.scheduleCommit()

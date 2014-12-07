@@ -22,6 +22,7 @@
 from partmgr.core.entity import *
 from partmgr.core.util import *
 
+import datetime
 
 class Origin(Entity):
 	"Item origin descriptor."
@@ -30,7 +31,7 @@ class Origin(Entity):
 
 	def __init__(self, name, description="", flags=0,
 		     stockItem=None, supplier=None, orderCode="",
-		     price=NO_PRICE,
+		     price=NO_PRICE, priceTimeStamp=0,
 		     id=Entity.NO_ID, db=None):
 		Entity.__init__(self, name, description, flags,
 				id, db, "Origin")
@@ -38,6 +39,7 @@ class Origin(Entity):
 		self.supplier = Entity.toId(supplier)
 		self.orderCode = orderCode
 		self.price = float(price)
+		self.__setPriceTimeStamp(priceTimeStamp)
 
 	def syncDatabase(self):
 		if self.db:
@@ -70,11 +72,28 @@ class Origin(Entity):
 			return None
 		return self.price
 
-	def setPrice(self, newPrice):
+	def setPrice(self, newPrice, updateTimeStamp=True):
 		if newPrice is None:
 			newPrice = self.NO_PRICE
 		self.price = round(float(newPrice), 5)
+		if updateTimeStamp:
+			self.setPriceTimeStampNow()
 		self.syncDatabase()
+
+	def __setPriceTimeStamp(self, newStamp):
+		if isinstance(newStamp, datetime.datetime):
+			newStamp = int(round(newStamp.timestamp()))
+		self.priceTimeStamp = int(newStamp)
+
+	def setPriceTimeStampNow(self):
+		self.setPriceTimeStamp(datetime.datetime.utcnow())
+
+	def setPriceTimeStamp(self, newStamp):
+		self.__setPriceTimeStamp(newStamp)
+		self.syncDatabase()
+
+	def getPriceTimeStamp(self):
+		return datetime.datetime.fromtimestamp(self.priceTimeStamp)
 
 	def delete(self):
 		self.db.delOrigin(self)

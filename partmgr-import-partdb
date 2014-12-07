@@ -162,13 +162,13 @@ def importFromPartdb(db, conn):
 	addSuppliers(suppMap, db, conn)
 
 	# Get all prices.
-	priceMap = {} # key = partdb-part-id, value = float
+	priceMap = {} # key = partdb-part-id, value = Partdb_Price()
 	c = conn.cursor()
 	c.execute("SELECT id, part_id, ma, preis, t "
 		  "FROM preise;")
 	for row in c:
 		price = Partdb_Price(*row)
-		priceMap[price.part_id] = price.price
+		priceMap[price.part_id] = price
 	c.close()
 
 	# Build the stock items.
@@ -206,14 +206,17 @@ def importFromPartdb(db, conn):
 		db.modifyStockItem(stockItem)
 
 		try:
-			price = priceMap[srcPart.id]
+			price = priceMap[srcPart.id].price
+			priceStamp = priceMap[srcPart.id].timestamp
 		except KeyError:
 			price = Origin.NO_PRICE
+			priceStamp = 0
 		origin = Origin(name = "",
 				stockItem = stockItem,
 				supplier = supp,
 				orderCode = srcPart.supplierpartnr,
-				price = price)
+				price = price,
+				priceTimeStamp = priceStamp)
 		db.modifyOrigin(origin)
 
 		storage = Storage(name = "",

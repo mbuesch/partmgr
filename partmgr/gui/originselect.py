@@ -60,15 +60,21 @@ class OriginWidget(QWidget):
 		self.setLayout(QVBoxLayout(self))
 		self.layout().setContentsMargins(QMargins())
 
-		priceLayout = QHBoxLayout()
+		priceLayout = QGridLayout()
 
 		label = QLabel("Price:", self)
-		priceLayout.addWidget(label)
+		priceLayout.addWidget(label, 0, 0)
 
 		price = origin.getPrice()
 		self.price = PriceSpinBox(origin.db, self)
 		self.price.setValue(Origin.NO_PRICE if price is None else price)
-		priceLayout.addWidget(self.price)
+		priceLayout.addWidget(self.price, 0, 1)
+
+		self.priceStamp = QLabel(self)
+		font = self.priceStamp.font()
+		font.setPointSize(8)
+		self.priceStamp.setFont(font)
+		priceLayout.addWidget(self.priceStamp, 1, 0, 1, 2)
 
 		self.layout().addLayout(priceLayout)
 
@@ -83,11 +89,16 @@ class OriginWidget(QWidget):
 		self.code.textChanged.connect(self.codeChanged)
 		self.price.valueChanged.connect(self.priceChanged)
 
+		self.updatePriceStamp(origin)
 		self.setProtected()
 
 	def setProtected(self, prot=True):
 		self.code.setProtected(prot)
 		self.price.setProtected(prot)
+
+	def updatePriceStamp(self, origin):
+		priceStamp = origin.getPriceTimeStamp()
+		self.priceStamp.setText(str(priceStamp))
 
 class OneOriginSelectWidget(ItemSelectWidget):
 	def __init__(self, origin, parent=None):
@@ -124,6 +135,7 @@ class OneOriginSelectWidget(ItemSelectWidget):
 
 	def __priceChanged(self, newPrice):
 		self.origin.setPrice(newPrice)
+		self.originWidget.updatePriceStamp(self.origin)
 
 class OriginsSelectWidget(GroupSelectWidget):
 	selectionChanged = Signal()

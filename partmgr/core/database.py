@@ -137,6 +137,7 @@ class Database(QObject):
 
 	def __initTables(self):
 		tables = (
+			#TODO: Add create/modify timestamps to all elements
 			"parameters(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				   "name TEXT, description TEXT, "
 				   "flags INTEGER, "
@@ -173,12 +174,14 @@ class Database(QObject):
 				"name TEXT, description TEXT, "
 				"flags INTEGER, "
 				"stockItem INTEGER, supplier INTEGER, "
-				"orderCode TEXT, price FLOAT)",
+				"orderCode TEXT, "
+				"price FLOAT, priceTimeStamp INTEGER)",
 			"storages(id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				 "name TEXT, description TEXT, "
 				 "flags INTEGER, "
 				 "stockItem INTEGER, location INTEGER, "
 				 "quantity INTEGER)",
+			#TODO add a history
 		)
 		c = self.db.cursor()
 		for table in tables:
@@ -857,7 +860,7 @@ class Database(QObject):
 			c = self.db.cursor()
 			c.execute("SELECT name, description, flags, "
 				  "stockItem, supplier, orderCode, "
-				  "price "
+				  "price, priceTimeStamp "
 				  "FROM origins "
 				  "WHERE id=?;",
 				  (int(id),))
@@ -871,6 +874,7 @@ class Database(QObject):
 				      int(data[4]),
 				      fromBase64(data[5]),
 				      float(data[6]),
+				      int(data[7]),
 				      id=id, db=self)
 		except (sql.Error, ValueError) as e:
 			self.__databaseError(e)
@@ -880,7 +884,8 @@ class Database(QObject):
 		try:
 			c = self.db.cursor()
 			c.execute("SELECT id, name, description, flags, "
-				  "supplier, orderCode, price "
+				  "supplier, orderCode, "
+				  "price, priceTimeStamp "
 				  "FROM origins "
 				  "WHERE stockItem=?;",
 				  (int(stockItemId),))
@@ -894,6 +899,7 @@ class Database(QObject):
 					int(d[4]),
 					fromBase64(d[5]),
 					float(d[6]),
+					int(d[7]),
 					id=int(d[0]), db=self)
 				 for d in data ]
 		except (sql.Error, ValueError) as e:
@@ -906,7 +912,8 @@ class Database(QObject):
 				c.execute("UPDATE origins "
 					  "SET name=?, description=?, flags=?, "
 					  "stockItem=?, supplier=?, "
-					  "orderCode=?, price=? "
+					  "orderCode=?, "
+					  "price=?, priceTimeStamp=? "
 					  "WHERE id=?;",
 					  (toBase64(origin.name),
 					   toBase64(origin.description),
@@ -915,20 +922,23 @@ class Database(QObject):
 					   int(origin.supplier),
 					   toBase64(origin.orderCode),
 					   float(origin.price),
+					   int(origin.priceTimeStamp),
 					   int(origin.id)))
 			else:
 				c.execute("INSERT INTO "
 					  "origins(name, description, flags, "
 					  "stockItem, supplier, "
-					  "orderCode, price) "
-					  "VALUES(?,?,?,?,?,?,?);",
+					  "orderCode, "
+					  "price, priceTimeStamp) "
+					  "VALUES(?,?,?,?,?,?,?,?);",
 					  (toBase64(origin.name),
 					   toBase64(origin.description),
 					   int(origin.flags),
 					   int(origin.stockItem),
 					   int(origin.supplier),
 					   toBase64(origin.orderCode),
-					   float(origin.price)))
+					   float(origin.price),
+					   int(origin.priceTimeStamp)))
 				origin.id = c.lastrowid
 				origin.db = self
 			self.scheduleCommit()

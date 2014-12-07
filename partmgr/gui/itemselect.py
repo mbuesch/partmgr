@@ -82,10 +82,7 @@ class ItemSelectWidget(QWidget):
 	def setProtected(self, prot=True):
 		self.combo.setProtected(prot)
 		try:
-			if prot:
-				self.actionButton.hide()
-			else:
-				self.actionButton.show()
+			self.actionButton.setEnabled(not prot)
 		except AttributeError as e:
 			pass
 

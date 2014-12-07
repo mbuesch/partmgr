@@ -51,10 +51,7 @@ class GroupSelectWidget(QWidget):
 		for selWidget in self.selectWidgets:
 			selWidget.setProtected(prot)
 		try:
-			if prot:
-				self.newButton.hide()
-			else:
-				self.newButton.show()
+			self.newButton.setEnabled(not prot)
 		except AttributeError as e:
 			pass
 

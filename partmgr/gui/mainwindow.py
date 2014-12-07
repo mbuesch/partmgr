@@ -106,6 +106,9 @@ class PartMgrMainWidget(QWidget):
 		dlg.edit()
 		self.stock.updateData()
 
+	def fetchPrices(self):
+		pass#TODO
+
 class PartMgrMainWindow(QMainWindow):
 	def __init__(self, parent=None):
 		QMainWindow.__init__(self, parent)
@@ -130,6 +133,9 @@ class PartMgrMainWindow(QMainWindow):
 		self.dbMenu.addAction("Global &parameters...",
 				      self.manageGlobalParams)
 		self.menuBar().addMenu(self.dbMenu)
+		self.dbMenu.addSeparator()
+		self.dbMenu.addAction("Auto-fetch p&rices...",
+				      self.fetchPrices)
 
 		self.statMenu = QMenu("&Statistics", self)
 		self.statMenu.addAction("Show parts to &order...",
@@ -182,6 +188,11 @@ class PartMgrMainWindow(QMainWindow):
 		mainWidget = self.centralWidget()
 		if mainWidget:
 			mainWidget.manageSuppliers()
+
+	def fetchPrices(self):
+		mainWidget = self.centralWidget()
+		if mainWidget:
+			mainWidget.fetchPrices()
 
 	def loadDatabase(self):
 		fn, filt = QFileDialog.getSaveFileName(self,

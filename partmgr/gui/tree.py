@@ -301,6 +301,9 @@ class Tree(QTreeView):
 				assert(0)
 		else:
 			menu.addAction("Add root-category...", self.addCategory)
+		menu.addSeparator()
+		menu.addAction("Collapse all", self.collapseAll)
+		menu.addAction("Expand all", self.expandAll)
 		menu.exec_(event.globalPos())
 		super(Tree, self).contextMenuEvent(event)
 

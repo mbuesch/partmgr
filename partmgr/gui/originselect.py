@@ -98,7 +98,9 @@ class OriginWidget(QWidget):
 
 	def updatePriceStamp(self, origin):
 		priceStamp = origin.getPriceTimeStamp()
-		self.priceStamp.setText(str(priceStamp))
+		self.priceStamp.clear()
+		if priceStamp:
+			self.priceStamp.setText(str(priceStamp))
 
 class OneOriginSelectWidget(ItemSelectWidget):
 	def __init__(self, origin, parent=None):

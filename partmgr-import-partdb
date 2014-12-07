@@ -273,13 +273,13 @@ def main():
 					       database = database)
 		db = Database(targetfile, withCommitTimer=False)
 		res = importFromPartdb(db, conn)
-		db.close()
+		db.close(commit = (res == 0))
 		conn.close()
 		return res
 	except (mysql.connector.Error, PartMgrError) as e:
 		try:
 			if db:
-				db.close()
+				db.close(commit = False)
 		except Exception:
 			pass
 		try:

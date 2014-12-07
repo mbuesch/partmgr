@@ -115,10 +115,12 @@ class Database(QObject):
 			return
 		self.__commitTimer.start(int(round(seconds * 1000)))
 
-	def close(self):
-		print("Closing database...")
-		self.__collectGarbage()
-		self.commit()
+	def close(self, commit=True):
+		print("Closing database%s..." %\
+		      ("" if commit else " (no commit)"))
+		if commit:
+			self.__collectGarbage()
+			self.commit()
 		self.db.close()
 		self.filename = None
 

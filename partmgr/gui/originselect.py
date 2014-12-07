@@ -125,6 +125,20 @@ class OneOriginSelectWidget(ItemSelectWidget):
 		ItemSelectWidget.setProtected(self, prot)
 
 	def actionButtonPressed(self):
+		supplier = self.origin.getSupplier()
+		if supplier:
+			supplier = supplier.getName()
+		else:
+			supplier = "<none>"
+		orderCode = self.origin.getOrderCode()
+		res = QMessageBox.question(self,
+			"Delete origin?",
+			"Delete the origin '%s' / '%s'?" %\
+			(supplier, orderCode),
+			QMessageBox.Yes | QMessageBox.No)
+		if res != QMessageBox.Yes:
+			return
+
 		self.origin.delete()
 		self.selectionChanged.emit(None)
 		self.parent().updateData()

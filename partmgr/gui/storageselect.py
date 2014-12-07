@@ -52,6 +52,20 @@ class OneStorageSelectWidget(ItemSelectWidget):
 		self.quantityChanged.emit(newQuantity)
 
 	def actionButtonPressed(self):
+		qty = str(self.storage.getQuantity())
+		loc = self.storage.getLocation()
+		if loc:
+			loc = loc.getName()
+		else:
+			loc = "<none>"
+		res = QMessageBox.question(self,
+			"Delete storage?",
+			"Delete the storage '%s' / '%s'?" %\
+			(loc, qty),
+			QMessageBox.Yes | QMessageBox.No)
+		if res != QMessageBox.Yes:
+			return
+
 		self.storage.delete()
 		self.quantityChanged.emit(0)
 		self.parent().updateData()

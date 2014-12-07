@@ -61,7 +61,7 @@ class StockItemWidget(QWidget):
 		self.storageGroup.layout().addWidget(self.storagesSel, 0, 0)
 		rightLayout.addWidget(self.storageGroup, 0, 0)
 
-		self.quantityGroup = QGroupBox("Stock quantity limits", self)
+		self.quantityGroup = QGroupBox("Global quantity", self)
 		self.quantityGroup.setLayout(QGridLayout(self.quantityGroup))
 		label = QLabel("Global stock qty:", self)
 		self.quantityGroup.layout().addWidget(label, 0, 0)

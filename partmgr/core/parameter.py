@@ -37,12 +37,15 @@ class Parameter(Entity):
 	PTYPE_ORIGIN	= 7
 	PTYPE_STORAGE	= 8
 
-	def __init__(self, name, description="", flags=0,
-		     parentType=PTYPE_GLOBAL, parent=None,
+	def __init__(self, name,
+		     parentType=PTYPE_GLOBAL,
+		     parent=None,
 		     data=b"",
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Parameter")
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Parameter",
+				**kwds)
 		self.parentType = parentType
 		self.parent = Entity.toId(parent)
 		self.__setData(data)

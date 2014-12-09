@@ -27,11 +27,13 @@ from partmgr.core.util import *
 class Footprint(Entity):
 	"Footprint descriptor."
 
-	def __init__(self, name, description="", flags=0,
+	def __init__(self, name,
 		     image=None,
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Footprint")
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Footprint",
+				**kwds)
 		if not image:
 			image = Image()
 		self.image = image

@@ -29,12 +29,14 @@ class Origin(Entity):
 
 	NO_PRICE = -0.1
 
-	def __init__(self, name, description="", flags=0,
+	def __init__(self, name,
 		     stockItem=None, supplier=None, orderCode="",
 		     price=NO_PRICE, priceTimeStamp=None,
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Origin")
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Origin",
+				**kwds)
 		self.stockItem = Entity.toId(stockItem)
 		self.supplier = Entity.toId(supplier)
 		self.orderCode = orderCode

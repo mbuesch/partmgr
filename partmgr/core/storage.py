@@ -26,11 +26,13 @@ from partmgr.core.util import *
 class Storage(Entity):
 	"Item storage descriptor."
 
-	def __init__(self, name, description="", flags=0,
+	def __init__(self, name,
 		     stockItem=None, location=None, quantity=0,
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Storage")
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Storage",
+				**kwds)
 		self.stockItem = Entity.toId(stockItem)
 		self.location = Entity.toId(location)
 		self.quantity = quantity

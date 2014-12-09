@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
+from partmgr.core.timestamp import *
 from partmgr.core.util import *
 
 
@@ -33,10 +34,17 @@ class Entity(object):
 	PARAMETER_PTYPE = None
 
 	def __init__(self, name="", description="", flags=0,
+		     createTimeStamp=None, modifyTimeStamp=None,
 		     id=NO_ID, db=None, entityType="Entity"):
 		self.name = name
 		self.description = description
 		self.flags = flags
+		self.createTimeStamp = Timestamp(createTimeStamp)
+		if not self.createTimeStamp.isValid():
+			self.createTimeStamp.setNow()
+		self.modifyTimeStamp = Timestamp(modifyTimeStamp)
+		if not self.modifyTimeStamp.isValid():
+			self.modifyTimeStamp.setStamp(self.createTimeStamp.getStamp())
 		self.id = id
 		self.db = db
 		self.entityType = entityType
@@ -60,6 +68,12 @@ class Entity(object):
 	def setDescription(self, newDescription):
 		self.description = newDescription
 		self.syncDatabase()
+
+	def getCreateTimeStamp(self):
+		return self.createTimeStamp.getStamp()
+
+	def getModifyTimeStamp(self):
+		return self.modifyTimeStamp.getStamp()
 
 	def getAllParameters(self):
 		assert(self.PARAMETER_PTYPE is not None)
@@ -99,6 +113,9 @@ class Entity(object):
 	def syncDatabase(self):
 		pass # Override this in subclass, if required.
 
+	def updateModifyTimeStamp(self):
+		self.modifyTimeStamp.setNow()
+
 	def delete(self):
 		self.db = None
 		self.id = Entity.NO_ID
@@ -120,6 +137,8 @@ class Entity(object):
 		args.append(str(self.name))
 		args.append(str(self.description))
 		args.append(str(self.flags))
+		args.append(str(self.createTimeStamp))
+		args.append(str(self.modifyTimeStamp))
 		args.append(str(self.id))
 		args.append(str(self.db))
 		args.append(str(self.entityType))

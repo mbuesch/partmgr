@@ -112,12 +112,14 @@ class StockItem(Entity):
 		UNIT_CUBM	: ("m^3", "cubic meter"),
 	}
 
-	def __init__(self, name, description="", flags=0,
+	def __init__(self, name,
 		     part=None, category=None, footprint=None,
 		     minQuantity=0, targetQuantity=0, quantityUnits=UNIT_PC,
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "StockItem")
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "StockItem",
+				**kwds)
 		self.part = Entity.toId(part)
 		self.category = Entity.toId(category)
 		self.footprint = Entity.toId(footprint)

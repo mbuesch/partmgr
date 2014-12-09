@@ -29,11 +29,13 @@ class Part(Entity):
 
 	PARAMETER_PTYPE = Parameter.PTYPE_PART
 
-	def __init__(self, name, description="", flags=0,
+	def __init__(self, name,
 		     category=None,
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Part")
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Part",
+				**kwds)
 		self.category = Entity.toId(category)
 
 	def syncDatabase(self):

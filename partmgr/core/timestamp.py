@@ -48,3 +48,6 @@ class Timestamp(object):
 
 	def getStampInt(self):
 		return self.stamp
+
+	def __repr__(self):
+		return str(self.getStamp())

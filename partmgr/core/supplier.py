@@ -26,11 +26,13 @@ from partmgr.core.util import *
 class Supplier(Entity):
 	"Supplier descriptor."
 
-	def __init__(self, name, description="", flags=0,
+	def __init__(self, name,
 		     url="",
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Supplier")
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Supplier",
+				**kwds)
 		self.url = url
 
 	def syncDatabase(self):

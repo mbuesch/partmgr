@@ -26,10 +26,12 @@ from partmgr.core.util import *
 class Location(Entity):
 	"Location descriptor."
 
-	def __init__(self, name, description="", flags=0,
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Location")
+	def __init__(self, name,
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Location",
+				**kwds)
 
 	def syncDatabase(self):
 		if self.db:

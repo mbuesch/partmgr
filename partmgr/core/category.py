@@ -26,10 +26,13 @@ from partmgr.core.util import *
 class Category(Entity):
 	"Category descriptor."
 
-	def __init__(self, name, description="", flags=0, parent=None,
-		     id=Entity.NO_ID, db=None):
-		Entity.__init__(self, name, description, flags,
-				id, db, "Category")
+	def __init__(self, name,
+		     parent=None,
+		     **kwds):
+		Entity.__init__(self,
+				name = name,
+				entityType = "Category",
+				**kwds)
 		self.parent = Entity.toId(parent)
 
 	def syncDatabase(self):

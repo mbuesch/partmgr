@@ -81,6 +81,8 @@ class Database(QObject):
 
 	def commit(self):
 		self.__commitTimerSchedBlock += 1
+		if self.__commitTimer:
+			self.__commitTimer.stop()
 		try:
 			rev = None
 			try:

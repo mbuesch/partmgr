@@ -34,7 +34,9 @@ class StockItemWidget(QWidget):
 		self.layout().setContentsMargins(QMargins())
 
 		leftLayout = QGridLayout()
+		leftLayout.setContentsMargins(QMargins(5, 0, 10, 0))
 		rightLayout = QGridLayout()
+		rightLayout.setContentsMargins(QMargins(10, 0, 0, 0))
 
 		self.partGroup = QGroupBox("Part", self)
 		self.partGroup.setLayout(QGridLayout(self.partGroup))
@@ -95,6 +97,13 @@ class StockItemWidget(QWidget):
 			self.targetQuantitySpinBox, 2, 1)
 		rightLayout.addWidget(self.quantityGroup, 1, 0)
 
+		self.datesLabel = QLabel(self)
+		font = self.datesLabel.font()
+		font.setPointSize(8)
+		self.datesLabel.setFont(font)
+		self.datesLabel.setAlignment(Qt.AlignRight)
+		rightLayout.addWidget(self.datesLabel, 2, 0)
+
 		leftLayout.setRowStretch(100, 1)
 		rightLayout.setRowStretch(100, 1)
 
@@ -107,8 +116,14 @@ class StockItemWidget(QWidget):
 			self.__partSelChanged)
 		self.footpSel.selectionChanged.connect(
 			self.__footpSelChanged)
+		self.originsSel.contentChanged.connect(
+			self.__updateModDates)
 		self.storagesSel.quantityChanged.connect(
 			self.__updateQuantity)
+		self.storagesSel.quantityChanged.connect(
+			self.__updateModDates)
+		self.storagesSel.contentChanged.connect(
+			self.__updateModDates)
 		self.quantityUnitsCombo.currentIndexChanged.connect(
 			self.__quantityUnitsChanged)
 		self.minQuantitySpinBox.valueChanged.connect(
@@ -130,6 +145,40 @@ class StockItemWidget(QWidget):
 		self.quantityUnitsCombo.setProtected(prot)
 		self.minQuantitySpinBox.setProtected(prot)
 		self.targetQuantitySpinBox.setProtected(prot)
+
+	def __updateModDates(self):
+		self.modifyBlocked += 1
+
+		stockItem = self.currentItem
+		if not stockItem:
+			self.datesLabel.clear()
+
+			self.modifyBlocked -= 1
+			return
+
+		def mkstamp(stamp):
+			if stamp:
+				return stamp
+			return datetime.datetime(2000, 1, 1)
+
+		createStamp = mkstamp(stockItem.getCreateTimeStamp())
+		modTimes = []
+		modTimes.append(mkstamp(stockItem.getModifyTimeStamp()))
+		part = stockItem.getPart()
+		if part:
+			modTimes.append(mkstamp(part.getModifyTimeStamp()))
+		for origin in stockItem.getOrigins():
+			modTimes.append(mkstamp(origin.getModifyTimeStamp()))
+			modTimes.append(mkstamp(origin.getPriceTimeStamp()))
+		for storage in stockItem.getStorages():
+			modTimes.append(mkstamp(storage.getModifyTimeStamp()))
+		modStamp = max(modTimes)
+
+		self.datesLabel.setText("created: %s\n"
+				        "modified: %s" %\
+					(createStamp, modStamp))
+
+		self.modifyBlocked -= 1
 
 	def __updateQuantity(self):
 		self.modifyBlocked += 1
@@ -163,6 +212,7 @@ class StockItemWidget(QWidget):
 		self.modifyBlocked += 1
 
 		self.__updateQuantity()
+		self.__updateModDates()
 
 		stock = self.currentItem
 		if not stock:
@@ -201,12 +251,16 @@ class StockItemWidget(QWidget):
 		self.updateData()
 
 	def __quantityUnitsChanged(self, index):
+		if self.modifyBlocked:
+			return
 		if self.currentItem:
 			unit = self.quantityUnitsCombo.itemData(index)
 			self.currentItem.setQuantityUnits(unit)
 		self.updateData()
 
 	def __minQuantityChanged(self, newValue):
+		if self.modifyBlocked:
+			return
 		stockItem = self.currentItem
 		if not stockItem:
 			return
@@ -215,6 +269,8 @@ class StockItemWidget(QWidget):
 			self.targetQuantitySpinBox.setValue(newValue)
 
 	def __targetQuantityChanged(self, newValue):
+		if self.modifyBlocked:
+			return
 		stockItem = self.currentItem
 		if not stockItem:
 			return

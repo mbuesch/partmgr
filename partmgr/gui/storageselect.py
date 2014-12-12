@@ -72,6 +72,7 @@ class OneStorageSelectWidget(ItemSelectWidget):
 
 class StoragesSelectWidget(GroupSelectWidget):
 	quantityChanged = Signal()
+	contentChanged = Signal()
 
 	def __init__(self, parent=None):
 		GroupSelectWidget.__init__(self, parent,
@@ -87,6 +88,7 @@ class StoragesSelectWidget(GroupSelectWidget):
 		storages.sort(key=lambda s: s.getId())
 		for storage in storages:
 			widget = OneStorageSelectWidget(storage, self)
+			widget.selectionChanged.connect(self.contentChanged)
 			widget.quantityChanged.connect(self.quantityChanged)
 			self.addItemSelectWidget(widget)
 		self.finishUpdate()
@@ -98,3 +100,4 @@ class StoragesSelectWidget(GroupSelectWidget):
 		storage = Storage("", stockItem = stockItem)
 		stockItem.db.modifyStorage(storage)
 		self.updateData(stockItem)
+		self.contentChanged.emit()

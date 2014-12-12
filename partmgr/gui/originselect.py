@@ -103,6 +103,9 @@ class OriginWidget(QWidget):
 			self.priceStamp.setText(str(priceStamp))
 
 class OneOriginSelectWidget(ItemSelectWidget):
+	codeChanged = Signal(str)
+	priceChanged = Signal(float)
+
 	def __init__(self, origin, parent=None):
 		self.originWidget = OriginWidget(origin)
 		ItemSelectWidget.__init__(self, parent,
@@ -115,10 +118,10 @@ class OneOriginSelectWidget(ItemSelectWidget):
 			    origin.getSupplier())
 
 		self.selectionChanged.connect(self.__supplierSelChanged)
-		self.originWidget.codeChanged.connect(
-				self.__orderCodeChanged)
-		self.originWidget.priceChanged.connect(
-				self.__priceChanged)
+		self.originWidget.codeChanged.connect(self.__orderCodeChanged)
+		self.originWidget.codeChanged.connect(self.codeChanged)
+		self.originWidget.priceChanged.connect(self.__priceChanged)
+		self.originWidget.priceChanged.connect(self.priceChanged)
 
 	def setProtected(self, prot=True):
 		self.originWidget.setProtected(prot)
@@ -155,6 +158,7 @@ class OneOriginSelectWidget(ItemSelectWidget):
 
 class OriginsSelectWidget(GroupSelectWidget):
 	selectionChanged = Signal()
+	contentChanged = Signal()
 
 	def __init__(self, parent=None):
 		GroupSelectWidget.__init__(self, parent,
@@ -171,6 +175,9 @@ class OriginsSelectWidget(GroupSelectWidget):
 		for origin in origins:
 			widget = OneOriginSelectWidget(origin, self)
 			widget.selectionChanged.connect(self.selectionChanged)
+			widget.selectionChanged.connect(self.contentChanged)
+			widget.codeChanged.connect(self.contentChanged)
+			widget.priceChanged.connect(self.contentChanged)
 			self.addItemSelectWidget(widget)
 		self.finishUpdate()
 
@@ -181,3 +188,4 @@ class OriginsSelectWidget(GroupSelectWidget):
 		origin = Origin("", stockItem = stockItem)
 		stockItem.db.modifyOrigin(origin)
 		self.updateData(stockItem)
+		self.contentChanged.emit()

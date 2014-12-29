@@ -267,18 +267,30 @@ class Tree(QTreeView):
 	def __init__(self, db, parent=None):
 		QTreeView.__init__(self, parent)
 		self.db = db
-		self.setModel(TreeModel(db, self))
+
+		model = TreeModel(db, self)
+		proxyModel = QSortFilterProxyModel(self)
+		proxyModel.setSourceModel(model)
+
+		self.setModel(proxyModel)
+		self.setSortingEnabled(True)
+
+	def realModel(self):
+		return self.model().sourceModel()
 
 	def currentChanged(self, selected, deselected):
 		QTreeView.currentChanged(self, selected, deselected)
-		treeItem = self.model().modelIndexToTreeItem(selected)
+		selected = self.model().mapToSource(selected)
+		treeItem = self.realModel().modelIndexToTreeItem(selected)
 		if treeItem.entityType == TreeItem.STOCKITEM:
 			self.itemChanged.emit(treeItem.entityId)
 		else:
 			self.itemChanged.emit(None)
 
 	def contextMenuEvent(self, event):
-		treeItem = self.model().modelIndexToTreeItem(self.indexAt(event.pos()))
+		index = self.indexAt(event.pos())
+		index = self.model().mapToSource(index)
+		treeItem = self.realModel().modelIndexToTreeItem(index)
 		self.contextTreeItem = treeItem
 		menu = QMenu(self)
 		if treeItem:
@@ -311,7 +323,8 @@ class Tree(QTreeView):
 		super(Tree, self).keyPressEvent(ev)
 
 		if ev.key() == Qt.Key_Delete:
-			self.contextTreeItem = self.model().modelIndexToTreeItem(self.currentIndex())
+			index = self.model().mapToSource(self.currentIndex())
+			self.contextTreeItem = self.realModel().modelIndexToTreeItem(index)
 			if not self.contextTreeItem:
 				return
 			if self.contextTreeItem.entityType == TreeItem.CATEGORY:
@@ -326,11 +339,12 @@ class Tree(QTreeView):
 		assert(parentTreeItem is None or\
 		       parentTreeItem.entityType == TreeItem.CATEGORY)
 		category = Category("New category")
-		newModelIndex = self.model().addCategory(parentTreeItem,
-							 category)
+		newModelIndex = self.realModel().addCategory(
+					parentTreeItem, category)
 
+		newModelIndex = self.model().mapFromSource(newModelIndex)
 		if parentTreeItem:
-			self.expand(parentTreeItem.modelIndex)
+			self.expand(self.model().mapFromSource(parentTreeItem.modelIndex))
 		self.setCurrentIndex(newModelIndex)
 		self.edit(newModelIndex)
 
@@ -344,7 +358,7 @@ class Tree(QTreeView):
 			QMessageBox.Yes | QMessageBox.No)
 		if ret & QMessageBox.Yes == 0:
 			return
-		self.model().delTreeItem(self.contextTreeItem)
+		self.realModel().delTreeItem(self.contextTreeItem)
 
 	def renameCategory(self):
 		assert(self.contextTreeItem.entityType == TreeItem.CATEGORY)
@@ -356,7 +370,7 @@ class Tree(QTreeView):
 				category.getName())
 		if not ok:
 			return
-		self.model().renameTreeItem(self.contextTreeItem, newName)
+		self.realModel().renameTreeItem(self.contextTreeItem, newName)
 
 	def renameStockItem(self):
 		assert(self.contextTreeItem.entityType == TreeItem.STOCKITEM)
@@ -368,15 +382,16 @@ class Tree(QTreeView):
 				stockItem.getVerboseName())
 		if not ok:
 			return
-		self.model().renameTreeItem(self.contextTreeItem, newName)
+		self.realModel().renameTreeItem(self.contextTreeItem, newName)
 
 	def addStockItem(self):
 		assert(self.contextTreeItem.entityType == TreeItem.CATEGORY)
 		stockItem = StockItem("")
-		newModelIndex = self.model().addStockItem(self.contextTreeItem,
-							  stockItem)
+		newModelIndex = self.realModel().addStockItem(
+					self.contextTreeItem, stockItem)
+		newModelIndex = self.model().mapFromSource(newModelIndex)
 
-		self.expand(self.contextTreeItem.modelIndex)
+		self.expand(self.model().mapFromSource(self.contextTreeItem.modelIndex))
 		self.setCurrentIndex(newModelIndex)
 		self.edit(newModelIndex)
 
@@ -390,4 +405,4 @@ class Tree(QTreeView):
 			QMessageBox.Yes | QMessageBox.No)
 		if ret & QMessageBox.Yes == 0:
 			return
-		self.model().delTreeItem(self.contextTreeItem)
+		self.realModel().delTreeItem(self.contextTreeItem)

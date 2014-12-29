@@ -274,6 +274,7 @@ class Tree(QTreeView):
 
 		self.setModel(proxyModel)
 		self.setSortingEnabled(True)
+		self.sortByColumn(0, Qt.AscendingOrder)
 
 	def realModel(self):
 		return self.model().sourceModel()

@@ -229,13 +229,15 @@ def importFromPartdb(db, conn):
 	return 0
 
 def usage():
-	print("partmgr-import-partdb013rw TARGETFILE.pmg SQLHOST SQLUSER SQLPASSWORD [SQLDATABASE]")
+	print("PartMgr - Part-DB-V0.1.3-RW import filter")
+	print()
+	print("Usage: partmgr-import-partdb TARGETFILE.pmg SQLHOST SQLUSER SQLPASSWORD [SQLDATABASE]")
 	print()
 	print(" TARGETFILE.pmg  The target database file to write to")
-	print(" SQLHOST         The MySQL hostname of the data source")
-	print(" SQLUSER         The MySQL username")
-	print(" SQLPASSWORD     The MySQL password")
-	print(" SQLDATABASE     The MySQL database (default: partdb)")
+	print(" SQLHOST         The Part-DB MySQL hostname")
+	print(" SQLUSER         The Part-DB MySQL username")
+	print(" SQLPASSWORD     The Part-DB MySQL password")
+	print(" SQLDATABASE     The Part-DB MySQL database (default: partdb)")
 
 def main():
 	try:

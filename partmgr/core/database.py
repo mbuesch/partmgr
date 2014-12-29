@@ -58,6 +58,7 @@ class Database(QObject):
 		try:
 			self.db = sql.connect(str(filename))
 			self.db.text_factory = str
+			self.filename = filename
 			if self.__sqlIsEmpty():
 				# This is an empty database
 				self.__initTables()
@@ -69,11 +70,12 @@ class Database(QObject):
 					"partmgr_db_version")
 				ver = ver.getDataInt() if ver else None
 				if ver is None or ver != self.DB_VERSION:
+					self.filename = None
 					raise PartMgrError("Invalid database "
 						    "version")
-			self.filename = filename
 			self.__setUserParameterDefaults()
 		except (sql.Error, ValueError, TypeError) as e:
+			self.filename = None
 			self.__databaseError(e)
 
 	def __repr__(self):
@@ -117,7 +119,13 @@ class Database(QObject):
 			return
 		self.__commitTimer.start(int(round(seconds * 1000)))
 
+	def isOpen(self):
+		return bool(self.filename)
+
 	def close(self, commit=True):
+		if not self.isOpen():
+			return
+
 		print("Closing database%s..." %\
 		      ("" if commit else " (no commit)"))
 		if commit:
@@ -127,6 +135,9 @@ class Database(QObject):
 		self.filename = None
 
 	def __collectGarbage(self):
+		if not self.isOpen():
+			return
+
 		pass#TODO collect orphan storages, origins and all other orphan objects.
 		self.db.cursor().execute("VACUUM;")
 
@@ -188,6 +199,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getParameterByParent(self, paramName, parentType, parent):
+		if not self.isOpen():
+			return None
+
 		try:
 			c = self.db.cursor()
 			c.execute("SELECT id, description, flags, "
@@ -216,6 +230,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getAllParametersByParent(self, parentType, parent):
+		if not self.isOpen():
+			return []
+
 		parentId = Entity.toId(parent)
 		try:
 			c = self.db.cursor()
@@ -269,6 +286,9 @@ class Database(QObject):
 			self.modifyParameter(param)
 
 	def modifyParameter(self, parameter):
+		if not self.isOpen():
+			return
+
 		parameter.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -310,6 +330,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delParameter(self, parameter):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(parameter)
 		try:
 			c = self.db.cursor()
@@ -321,6 +344,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getPart(self, part):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(part)
 		try:
 			c = self.db.cursor()
@@ -346,6 +372,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getParts(self):
+		if not self.isOpen():
+			return []
+
 		try:
 			c = self.db.cursor()
 			c.execute("SELECT id, name, description, flags, "
@@ -369,6 +398,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getPartsByCategory(self, category):
+		if not self.isOpen():
+			return []
+
 		categoryId = Entity.toId(category)
 		try:
 			c = self.db.cursor()
@@ -396,6 +428,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifyPart(self, part):
+		if not self.isOpen():
+			return
+
 		part.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -434,6 +469,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delPart(self, part):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(part)
 		try:
 			c = self.db.cursor()
@@ -444,6 +482,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getCategory(self, category):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(category)
 		try:
 			c = self.db.cursor()
@@ -475,6 +516,9 @@ class Database(QObject):
 		return self.countChildCategories(None)
 
 	def getChildCategories(self, parentCategory):
+		if not self.isOpen():
+			return []
+
 		parentId = Entity.toId(parentCategory)
 		try:
 			c = self.db.cursor()
@@ -501,6 +545,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def countChildCategories(self, parentCategory):
+		if not self.isOpen():
+			return 0
+
 		parentId = Entity.toId(parentCategory)
 		try:
 			c = self.db.cursor()
@@ -516,6 +563,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifyCategory(self, category):
+		if not self.isOpen():
+			return
+
 		category.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -554,6 +604,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delCategory(self, category):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(category)
 		try:
 			c = self.db.cursor()
@@ -565,6 +618,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getSupplier(self, supplier):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(supplier)
 		try:
 			c = self.db.cursor()
@@ -590,6 +646,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getSuppliers(self):
+		if not self.isOpen():
+			return []
+
 		try:
 			c = self.db.cursor()
 			c.execute("SELECT id, name, description, flags, "
@@ -613,6 +672,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifySupplier(self, supplier):
+		if not self.isOpen():
+			return
+
 		supplier.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -651,6 +713,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delSupplier(self, supplier):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(supplier)
 		try:
 			c = self.db.cursor()
@@ -662,6 +727,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getLocation(self, location):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(location)
 		try:
 			c = self.db.cursor()
@@ -685,6 +753,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getLocations(self):
+		if not self.isOpen():
+			return []
+
 		try:
 			c = self.db.cursor()
 			c.execute("SELECT id, name, description, flags, "
@@ -706,6 +777,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifyLocation(self, location):
+		if not self.isOpen():
+			return
+
 		location.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -740,6 +814,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delLocation(self, location):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(location)
 		try:
 			c = self.db.cursor()
@@ -751,6 +828,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getFootprint(self, footprint):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(footprint)
 		try:
 			c = self.db.cursor()
@@ -776,6 +856,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getFootprints(self):
+		if not self.isOpen():
+			return []
+
 		try:
 			c = self.db.cursor()
 			c.execute("SELECT id, name, description, flags, "
@@ -799,6 +882,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifyFootprint(self, footprint):
+		if not self.isOpen():
+			return
+
 		footprint.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -837,6 +923,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delFootprint(self, footprint):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(footprint)
 		try:
 			c = self.db.cursor()
@@ -848,6 +937,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getStockItem(self, stockItem):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
@@ -880,6 +972,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getStockItemsByCategory(self, category):
+		if not self.isOpen():
+			return []
+
 		categoryId = Entity.toId(category)
 		try:
 			c = self.db.cursor()
@@ -914,6 +1009,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def countStockItemsByCategory(self, category):
+		if not self.isOpen():
+			return 0
+
 		categoryId = Entity.toId(category)
 		try:
 			c = self.db.cursor()
@@ -929,6 +1027,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifyStockItem(self, stockItem):
+		if not self.isOpen():
+			return
+
 		stockItem.updateModifyTimeStamp()
 		try:
 			assert(Entity.isValidId(stockItem.category))
@@ -983,6 +1084,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delStockItem(self, stockItem):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
@@ -994,6 +1098,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getOrigin(self, origin):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(origin)
 		try:
 			c = self.db.cursor()
@@ -1024,6 +1131,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getOriginsByStockItem(self, stockItem):
+		if not self.isOpen():
+			return []
+
 		stockItemId = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
@@ -1055,6 +1165,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifyOrigin(self, origin):
+		if not self.isOpen():
+			return
+
 		origin.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -1105,6 +1218,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delOrigin(self, origin):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(origin)
 		try:
 			c = self.db.cursor()
@@ -1116,6 +1232,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getStorage(self, storage):
+		if not self.isOpen():
+			return None
+
 		id = Entity.toId(storage)
 		try:
 			c = self.db.cursor()
@@ -1143,6 +1262,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def getStoragesByStockItem(self, stockItem):
+		if not self.isOpen():
+			return []
+
 		stockItemId = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
@@ -1171,6 +1293,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def modifyStorage(self, storage):
+		if not self.isOpen():
+			return
+
 		storage.updateModifyTimeStamp()
 		try:
 			c = self.db.cursor()
@@ -1214,6 +1339,9 @@ class Database(QObject):
 			self.__databaseError(e)
 
 	def delStorage(self, storage):
+		if not self.isOpen():
+			return
+
 		id = Entity.toId(storage)
 		try:
 			c = self.db.cursor()

@@ -785,7 +785,7 @@ class Database(QObject):
 			c = self.db.cursor()
 			if location.inDatabase(self):
 				c.execute("UPDATE locations "
-					  "SET name=?, description=?, flags=? "
+					  "SET name=?, description=?, flags=?, "
 					  "createTimeStamp=?, "
 					  "modifyTimeStamp=? "
 					  "WHERE id=?;",

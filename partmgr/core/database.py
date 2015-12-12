@@ -1008,6 +1008,52 @@ class Database(QObject):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	def getStockItemsToPurchase(self):
+		if not self.isOpen():
+			return []
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT stock.id, "
+				  "stock.name, "
+				  "stock.description, "
+				  "stock.flags, "
+				  "stock.createTimeStamp, "
+				  "stock.modifyTimeStamp, "
+				  "stock.part, "
+				  "stock.category, "
+				  "stock.footprint, "
+				  "stock.minQuantity, "
+				  "stock.targetQuantity, "
+				  "stock.quantityUnits "
+				  "FROM stock "
+				  "JOIN ( "
+				  "    SELECT storages.stockItem as sid, "
+				  "    SUM(storages.quantity) AS quantitySum "
+				  "    FROM storages GROUP BY sid "
+				  ") "
+				  "ON (sid = stock.id) "
+				  "WHERE (quantitySum < stock.minQuantity);")
+			data = c.fetchall()
+			if not data:
+				return []
+			return [ StockItem(id = int(d[0]),
+					   name = fromBase64(d[1]),
+					   description = fromBase64(d[2]),
+					   flags = int(d[3]),
+					   createTimeStamp = int(d[4]),
+					   modifyTimeStamp = int(d[5]),
+					   part = int(d[6]),
+					   category = int(d[7]),
+					   footprint = int(d[8]),
+					   minQuantity = int(d[9]),
+					   targetQuantity = int(d[10]),
+					   quantityUnits = int(d[11]),
+					   db = self)
+				for d in data ]
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	def countStockItemsByCategory(self, category):
 		if not self.isOpen():
 			return 0

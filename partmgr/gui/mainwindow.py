@@ -85,7 +85,7 @@ class PartMgrMainWidget(QWidget):
 
 	def showPartsToOrder(self):
 		dlg = PartsToOrderDialog(self.db, self)
-		dlg.exec_()
+		dlg.show()
 
 	def showHistory(self):
 		dlg = HistoryDialog(self.db, self)

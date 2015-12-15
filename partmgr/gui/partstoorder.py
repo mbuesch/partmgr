@@ -36,12 +36,15 @@ class PartsToOrderDialog(QDialog):
 		self.closeButton = QPushButton("&Close", self)
 		self.layout().addWidget(self.closeButton, 1, 2)
 
+		self.updateButton = QPushButton("&Update", self)
+		self.layout().addWidget(self.updateButton, 1, 1)
+
+		self.updateButton.released.connect(self.__updateTable)
 		self.closeButton.released.connect(self.accept)
+		self.orderTable.itemPressed.connect(self.__tabItemClicked)
 
 		self.resize(750, 400)
 		self.__updateTable()
-
-		#TODO context menu to copy order codes
 
 	def __updateTable(self):
 		self.orderTable.clear()
@@ -50,24 +53,33 @@ class PartsToOrderDialog(QDialog):
 		if not stockItems:
 			self.orderTable.setRowCount(1)
 			self.orderTable.setColumnCount(1)
-			self.orderTable.setItem(0, 0,
-				QTableWidgetItem("No items to purchase found.",
-						 QTableWidgetItem.Type))
+			self.orderTable.setColumnWidth(0, 400)
+			item = QTableWidgetItem("No items to purchase found.",
+						QTableWidgetItem.Type)
+			item.setData(Qt.UserRole, None)
+			self.orderTable.setItem(0, 0, item)
 			return
 
-		self.orderTable.setColumnCount(3)
+		# Build the table
+		columns = (("Item name", 200), ("Order codes", 220),
+			   ("Amount to order", 120), ("Cur. in stock", 120))
+		self.orderTable.setColumnCount(len(columns))
 		self.orderTable.setRowCount(len(stockItems))
-		self.orderTable.setHorizontalHeaderLabels(
-			("Item name", "Order codes", "Amount to order"))
-		self.orderTable.setColumnWidth(0, 200)
-		self.orderTable.setColumnWidth(1, 220)
-		self.orderTable.setColumnWidth(2, 120)
+		self.orderTable.setHorizontalHeaderLabels(tuple(l[0] for l in columns))
+		for i, (colName, colWidth) in enumerate(columns):
+			self.orderTable.setColumnWidth(i, colWidth)
 
+		# Populate the table
 		for i, stockItem in enumerate(stockItems):
+			def mkitem(text):
+				item = QTableWidgetItem(text, QTableWidgetItem.Type)
+				item.setData(Qt.UserRole, stockItem.getId())
+				return item
+
 			self.orderTable.setRowHeight(i, 50)
+
 			self.orderTable.setItem(i, 0,
-				QTableWidgetItem(stockItem.getVerboseName(),
-						 QTableWidgetItem.Type))
+						mkitem(stockItem.getVerboseName()))
 			orderCodes = []
 			for origin in stockItem.getOrigins():
 				code = ""
@@ -80,9 +92,39 @@ class PartsToOrderDialog(QDialog):
 					code += "<no order code>"
 				orderCodes.append(code)
 			self.orderTable.setItem(i, 1,
-				QTableWidgetItem("\n".join(orderCodes),
-						 QTableWidgetItem.Type))
+						mkitem("\n".join(orderCodes)))
 			self.orderTable.setItem(i, 2,
-				QTableWidgetItem("%d %s" % (
-					stockItem.getOrderQuantity(),
-					stockItem.getQuantityUnitsShort())))
+						mkitem("%d %s" % (
+						       stockItem.getOrderQuantity(),
+						       stockItem.getQuantityUnitsShort())))
+			self.orderTable.setItem(i, 3,
+						mkitem("%d %s" % (
+						       stockItem.getGlobalQuantity(),
+						       stockItem.getQuantityUnitsShort())))
+
+	def __tabItemClicked(self, item):
+		if not item:
+			return
+		itemData = item.data(Qt.UserRole)
+		if itemData is None:
+			return
+
+		mouseButtons = QApplication.mouseButtons()
+		if mouseButtons & Qt.RightButton:
+			if self.orderTable.currentColumn() == 1:
+				stockItem = self.db.getStockItem(itemData)
+				menu = QMenu()
+				for origin in stockItem.getOrigins():
+					supp = origin.getSupplier()
+					if not supp:
+						continue
+					menu.addAction("Copy '%s' order "
+						"code" % supp.getName(),
+						lambda code = origin.getOrderCode():
+							self.__copyStrToClipboard(code))
+				menu.exec_(QCursor.pos())
+
+	def __copyStrToClipboard(self, string):
+		clipboard = QApplication.clipboard()
+		clipboard.setText(string, QClipboard.Clipboard)
+		clipboard.setText(string, QClipboard.Selection)

@@ -203,8 +203,7 @@ class TreeModel(QAbstractItemModel):
 		if role != Qt.EditRole:
 			return False
 		treeItem = self.modelIndexToTreeItem(index)
-		entity = treeItem.toEntity(self.db)
-		entity.setName(value)
+		self.__renameTreeItem(treeItem, value)
 		return QAbstractItemModel.setData(self, index, value, role)
 
 	def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -255,11 +254,16 @@ class TreeModel(QAbstractItemModel):
 
 	# Rename a TreeItem (stock or category).
 	def renameTreeItem(self, treeItem, newName):
-		entity = treeItem.toEntity(self.db)
-		entity.setName(newName)
-
+		entity = self.__renameTreeItem(treeItem, newName)
 		modelIndex = self.entityToModelIndex(entity)
 		self.dataChanged.emit(modelIndex, modelIndex)
+
+	def __renameTreeItem(self, treeItem, newName):
+		entity = treeItem.toEntity(self.db)
+		oldName = entity.getName()
+		if newName != oldName:
+			entity.setName(newName)
+		return entity
 
 class Tree(QTreeView):
 	itemChanged = Signal(int)

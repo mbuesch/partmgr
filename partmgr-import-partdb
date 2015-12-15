@@ -273,9 +273,10 @@ def main():
 					       password = password,
 					       host = host,
 					       database = database)
-		db = Database(targetfile, withCommitTimer=False)
+		db = Database(targetfile)
 		res = importFromPartdb(db, conn)
-		db.close(commit = (res == 0))
+		db.close(collectGarbage = (res == 0),
+			 updateRevision = (res == 0))
 		conn.close()
 		return res
 	except (mysql.connector.Error, PartMgrError) as e:

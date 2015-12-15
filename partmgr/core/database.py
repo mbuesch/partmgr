@@ -2,7 +2,7 @@
 #
 # PartMgr - Database
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2015 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ from partmgr.core.util import *
 import sqlite3 as sql
 
 
-class Database(QObject):
+class Database(object):
 	"Part database interface."
 
 	# Database version number
@@ -46,15 +46,8 @@ class Database(QObject):
 		"currency"	: ("Price currency", Param_Currency.CURR_EUR),
 	}
 
-	def __init__(self, filename, withCommitTimer=True):
-		QObject.__init__(self)
-		if withCommitTimer:
-			self.__commitTimer = QTimer(self)
-			self.__commitTimer.setSingleShot(True)
-			self.__commitTimer.timeout.connect(self.__commitTimerTrig)
-		else:
-			self.__commitTimer = None
-		self.__commitTimerSchedBlock = 0
+	def __init__(self, filename):
+		self.__hadChanges = False
 		try:
 			self.db = sql.connect(str(filename))
 			self.db.text_factory = str
@@ -81,65 +74,60 @@ class Database(QObject):
 	def __repr__(self):
 		return "Database(%s)" % str(self.filename)
 
-	def commit(self):
-		self.__commitTimerSchedBlock += 1
-		if self.__commitTimer:
-			self.__commitTimer.stop()
-		try:
-			rev = None
-			try:
-				rev = self.getGlobalParameter("partmgr_db_revision")
-				if not rev:
-					raise ValueError
-				revNr = rev.getDataInt()
-			except (PartMgrError, ValueError) as e:
-				try:
-					if rev:
-						self.delParameter(rev)
-				except PartMgrError:
-					pass
-				rev = Parameter("partmgr_db_revision",
-						data = 0)
-				revNr = rev.getDataInt()
-			revNr += 1
-			rev.setData(revNr)
-			self.modifyParameter(rev)
-			print("Committing database (rev %d)..." % revNr)
-			self.db.commit()
-		finally:
-			self.__commitTimerSchedBlock -= 1
-
-	def __commitTimerTrig(self):
-		self.commit()
-
-	def scheduleCommit(self, seconds=5.0):
-		if self.__commitTimerSchedBlock:
-			return
-		if not self.__commitTimer:
-			return
-		self.__commitTimer.start(int(round(seconds * 1000)))
+	def __commit(self):
+		self.db.commit()
+		self.__hadChanges = True
 
 	def isOpen(self):
 		return bool(self.filename)
 
-	def close(self, commit=True):
+	def close(self, collectGarbage = True, updateRevision = True):
 		if not self.isOpen():
 			return
 
+		if not self.__hadChanges:
+			collectGarbage = False
+			updateRevision = False
+
 		print("Closing database%s..." %\
-		      ("" if commit else " (no commit)"))
-		if commit:
+		      (" (gc)" if collectGarbage else ""))
+		if updateRevision:
+			self.__incRevision()
+		if collectGarbage:
 			self.__collectGarbage()
-			self.commit()
 		self.db.close()
 		self.filename = None
+
+	def __incRevision(self):
+		rev = None
+		try:
+			rev = self.getGlobalParameter("partmgr_db_revision")
+			if not rev:
+				raise ValueError
+			revNr = rev.getDataInt()
+		except (PartMgrError, ValueError) as e:
+			try:
+				if rev:
+					self.delParameter(rev)
+			except PartMgrError:
+				pass
+			rev = Parameter("partmgr_db_revision",
+					data = 0)
+			revNr = rev.getDataInt()
+		revNr += 1
+		rev.setData(revNr)
+		self.modifyParameter(rev)
+		print("Database has revision %d" % revNr)
+		self.__commit()
 
 	def __collectGarbage(self):
 		if not self.isOpen():
 			return
 
+		c = self.db.cursor()
 		pass#TODO collect orphan storages, origins and all other orphan objects.
-		self.db.cursor().execute("VACUUM;")
+		c.execute("VACUUM;")
+		self.__commit()
 
 	def __databaseError(self, exception):
 		if isinstance(exception, ValueError):
@@ -187,7 +175,7 @@ class Database(QObject):
 		c = self.db.cursor()
 		for table in tables:
 			c.execute("CREATE TABLE IF NOT EXISTS %s;" % table)
-		self.db.commit()
+		self.__commit()
 
 	def __sqlIsEmpty(self):
 		try:
@@ -324,7 +312,7 @@ class Database(QObject):
 					   toBase64(parameter.data)))
 				parameter.id = c.lastrowid
 				parameter.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return parameter.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -339,7 +327,7 @@ class Database(QObject):
 			c.execute("DELETE FROM parameters "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -463,7 +451,7 @@ class Database(QObject):
 					   int(part.category)))
 				part.id = c.lastrowid
 				part.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return part.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -477,7 +465,7 @@ class Database(QObject):
 			c = self.db.cursor()
 			c.execute("DELETE FROM parts WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -598,7 +586,7 @@ class Database(QObject):
 					   int(category.parent)))
 				category.id = c.lastrowid
 				category.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return category.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -613,7 +601,7 @@ class Database(QObject):
 			c.execute("DELETE FROM categories "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -707,7 +695,7 @@ class Database(QObject):
 					   toBase64(supplier.url)))
 				supplier.id = c.lastrowid
 				supplier.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return supplier.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -722,7 +710,7 @@ class Database(QObject):
 			c.execute("DELETE FROM suppliers "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -808,7 +796,7 @@ class Database(QObject):
 					   int(location.modifyTimeStamp.getStampInt())))
 				location.id = c.lastrowid
 				location.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return location.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -823,7 +811,7 @@ class Database(QObject):
 			c.execute("DELETE FROM locations "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -917,7 +905,7 @@ class Database(QObject):
 					   footprint.image.toString()))
 				footprint.id = c.lastrowid
 				footprint.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return footprint.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -932,7 +920,7 @@ class Database(QObject):
 			c.execute("DELETE FROM footprints "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -1124,7 +1112,7 @@ class Database(QObject):
 					   int(stockItem.quantityUnits)))
 				stockItem.id = c.lastrowid
 				stockItem.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return stockItem.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -1139,7 +1127,7 @@ class Database(QObject):
 			c.execute("DELETE FROM stock "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -1258,7 +1246,7 @@ class Database(QObject):
 					   int(origin.getPriceTimeStampInt())))
 				origin.id = c.lastrowid
 				origin.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return origin.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -1273,7 +1261,7 @@ class Database(QObject):
 			c.execute("DELETE FROM origins "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -1379,7 +1367,7 @@ class Database(QObject):
 					   int(storage.quantity)))
 				storage.id = c.lastrowid
 				storage.db = self
-			self.scheduleCommit()
+			self.__commit()
 			return storage.id
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
@@ -1394,6 +1382,6 @@ class Database(QObject):
 			c.execute("DELETE FROM storages "
 				  "WHERE id=?;",
 				  (int(id),))
-			self.scheduleCommit()
+			self.__commit()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)

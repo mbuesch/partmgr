@@ -114,15 +114,22 @@ class PartsToOrderDialog(QDialog):
 			if self.orderTable.currentColumn() == 1:
 				stockItem = self.db.getStockItem(itemData)
 				menu = QMenu()
+				count = 0
 				for origin in stockItem.getOrigins():
 					supp = origin.getSupplier()
-					if not supp:
+					orderCode = origin.getOrderCode()
+					if not supp or not orderCode:
+						continue
+					suppName = supp.getName()
+					if not suppName:
 						continue
 					menu.addAction("Copy '%s' order "
-						"code" % supp.getName(),
-						lambda code = origin.getOrderCode():
+						"code" % suppName,
+						lambda code = orderCode:
 							self.__copyStrToClipboard(code))
-				menu.exec_(QCursor.pos())
+					count += 1
+				if count:
+					menu.exec_(QCursor.pos())
 
 	def __copyStrToClipboard(self, string):
 		clipboard = QApplication.clipboard()

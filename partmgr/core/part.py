@@ -60,6 +60,7 @@ class Part(Entity):
 	def __repr__(self):
 		args = []
 		args.append(str(self.name))
+		args.append(str(self.category))
 		args.append(str(self.description))
 		args.append(str(self.flags))
 		args.append(str(self.id))

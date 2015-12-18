@@ -2,7 +2,7 @@
 #
 # PartMgr GUI - Tree widget
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2015 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ from partmgr.gui.util import *
 
 from partmgr.core.category import *
 from partmgr.core.stockitem import *
+from partmgr.core.part import *
 
 
 class TreeItem(object):
@@ -186,7 +187,7 @@ class TreeModel(QAbstractItemModel):
 		treeItem = self.modelIndexToTreeItem(index)
 		if role in (Qt.DisplayRole, Qt.EditRole):
 			entity = treeItem.toEntity(self.db)
-			return entity.getVerboseName()
+			return entity.getName()
 		elif role == Qt.DecorationRole:
 			if treeItem.entityType == TreeItem.CATEGORY:
 				icon = self.fileIconProv.icon(
@@ -203,7 +204,7 @@ class TreeModel(QAbstractItemModel):
 		if role != Qt.EditRole:
 			return False
 		treeItem = self.modelIndexToTreeItem(index)
-		self.__renameTreeItem(treeItem, value)
+		self.renameTreeItem(treeItem, value)
 		return QAbstractItemModel.setData(self, index, value, role)
 
 	def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -254,16 +255,56 @@ class TreeModel(QAbstractItemModel):
 
 	# Rename a TreeItem (stock or category).
 	def renameTreeItem(self, treeItem, newName):
-		entity = self.__renameTreeItem(treeItem, newName)
-		modelIndex = self.entityToModelIndex(entity)
-		self.dataChanged.emit(modelIndex, modelIndex)
-
-	def __renameTreeItem(self, treeItem, newName):
 		entity = treeItem.toEntity(self.db)
 		oldName = entity.getName()
-		if newName != oldName:
-			entity.setName(newName)
-		return entity
+		if newName == oldName:
+			return
+
+		# Set the new entity name.
+		entity.setName(newName)
+
+		if treeItem.entityType == TreeItem.STOCKITEM:
+			stockItem = entity
+
+			# Wheeeee, magic happens:
+			# If a part is assigned to the stock item and we are
+			# the only user of that part and the part has the same name,
+			# the part is renamed, too.
+			# If there was no old name and no part, we try to make a part
+			# for this stock item, but only if the part does not exist.
+			# If there is a part by that name, we take that.
+			# Otherwise no part is assigned.
+
+			db = stockItem.getDatabase()
+			part = stockItem.getPart()
+			category = stockItem.getCategory()
+			allStockItems = db.getStockItemsByCategory(category)\
+					if category else ()
+			allParts = db.getPartsByCategory(category)\
+				   if category else ()
+			itemsWithSamePart = [ si for si in allStockItems
+					      if si.getPart() == part ]
+			partsWithNewName = [ p for p in allParts\
+					     if p.getName() == newName ]
+
+			if part and\
+			   len(itemsWithSamePart) == 1 and\
+			   itemsWithSamePart[0] == stockItem and\
+			   part.getName().strip() == oldName.strip():
+				# Also rename the part.
+				part.setName(newName)
+			elif not part and len(partsWithNewName) == 1:
+				# Take this part which already has the new name.
+				stockItem.setPart(partsWithNewName[0])
+			elif not part and not oldName.strip():
+				# Create a new part.
+				newPart = Part(newName, category = category)
+				db.modifyPart(newPart)
+				stockItem.setPart(newPart)
+
+		# Our data changed. Emit the signal.
+		modelIndex = self.entityToModelIndex(entity)
+		self.dataChanged.emit(modelIndex, modelIndex)
 
 class Tree(QTreeView):
 	itemChanged = Signal(int)
@@ -276,9 +317,16 @@ class Tree(QTreeView):
 		proxyModel = QSortFilterProxyModel(self)
 		proxyModel.setSourceModel(model)
 
+		model.dataChanged.connect(self.__modelDataChanged)
+
 		self.setModel(proxyModel)
 		self.setSortingEnabled(True)
 		self.sortByColumn(0, Qt.AscendingOrder)
+
+	def __modelDataChanged(self):
+		selected = self.model().mapToSource(self.currentIndex())
+		treeItem = self.realModel().modelIndexToTreeItem(selected)
+		self.itemChanged.emit(treeItem.entityId)
 
 	def realModel(self):
 		return self.model().sourceModel()
@@ -353,7 +401,6 @@ class Tree(QTreeView):
 		self.setCurrentIndex(newModelIndex)
 		self.edit(newModelIndex)
 
-
 	def delCategory(self):
 		assert(self.contextTreeItem.entityType == TreeItem.CATEGORY)
 		category = self.contextTreeItem.toEntity(self.db)
@@ -384,7 +431,7 @@ class Tree(QTreeView):
 				self, "Rename item",
 				"Rename item",
 				QLineEdit.Normal,
-				stockItem.getVerboseName())
+				stockItem.getName())
 		if not ok:
 			return
 		self.realModel().renameTreeItem(self.contextTreeItem, newName)
@@ -406,7 +453,7 @@ class Tree(QTreeView):
 		ret = QMessageBox.question(self,
 			"Really delete item?",
 			"Really delete item '%s'?" %\
-			stockItem.getVerboseName(),
+			stockItem.getName(),
 			QMessageBox.Yes | QMessageBox.No)
 		if ret & QMessageBox.Yes == 0:
 			return

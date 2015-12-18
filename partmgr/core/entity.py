@@ -2,7 +2,7 @@
 #
 # PartMgr - Abstract entity
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2015 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,9 +55,6 @@ class Entity(object):
 	def getName(self):
 		return self.name
 
-	def getVerboseName(self):
-		return self.getName()
-
 	def setName(self, newName):
 		self.name = newName
 		self.syncDatabase()
@@ -99,6 +96,7 @@ class Entity(object):
 			return Entity.NO_ID
 		if isinstance(entity, int):
 			return entity
+		assert(isinstance(entity, Entity))
 		return entity.id
 
 	def hasValidId(self):
@@ -125,7 +123,8 @@ class Entity(object):
 		return self.entityType
 
 	def __eq__(self, other):
-		return other and\
+		return isinstance(other, Entity) and\
+		       self.entityType == other.entityType and\
 		       self.db == other.db and\
 		       self.id == other.id
 

@@ -79,13 +79,13 @@ class PartsToOrderDialog(QDialog):
 			self.orderTable.setRowHeight(i, 50)
 
 			self.orderTable.setItem(i, 0,
-						mkitem(stockItem.getVerboseName()))
+						mkitem(stockItem.getName()))
 			orderCodes = []
 			for origin in stockItem.getOrigins():
 				code = ""
 				supplier = origin.getSupplier()
 				if supplier:
-					code += supplier.getVerboseName() + ": "
+					code += supplier.getName() + ": "
 				if origin.getOrderCode():
 					code += origin.getOrderCode()
 				else:

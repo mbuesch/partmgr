@@ -131,21 +131,18 @@ class StockItem(Entity):
 		if self.db:
 			self.db.modifyStockItem(self)
 
-	def getVerboseName(self):
-		name = self.getName()
-		if name:
-			return name
-		part = self.getPart()
-		if part:
-			return part.getName()
-		return "Unnamed item"
-
-	def setName(self, newName):
-		part = self.getPart()
-		if part:
-			if newName == part.getName():
-				newName = ""
-		Entity.setName(self, newName)
+	def getName(self):
+		name = Entity.getName(self)
+		if not name:
+			part = self.getPart()
+			partName = part.getName() if part else None
+			if partName:
+				# This is a compat and convenience hack.
+				# If this stock item doesn't have a name, but
+				# has a named part, we take its name.
+				name = partName
+				self.setName(name)
+		return name
 
 	def getPart(self):
 		if not Entity.isValidId(self.part):

@@ -2,7 +2,7 @@
 #
 # PartMgr GUI - Main window
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2015 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ from partmgr.gui.footprintmanage import *
 from partmgr.gui.locationmanage import *
 from partmgr.gui.suppliermanage import *
 from partmgr.gui.parametermanage import *
+from partmgr.gui.pricefetch import *
 from partmgr.gui.util import *
 
 from partmgr.core.database import *
@@ -112,7 +113,9 @@ class PartMgrMainWidget(QWidget):
 		self.stock.updateData()
 
 	def fetchPrices(self):
-		pass#TODO
+		dlg = PriceFetchDialog(self.db, self)
+		dlg.exec_()
+		self.stock.updateData()
 
 class PartMgrMainWindow(QMainWindow):
 	def __init__(self, parent=None):
@@ -139,7 +142,7 @@ class PartMgrMainWindow(QMainWindow):
 				      self.manageGlobalParams)
 		self.menuBar().addMenu(self.dbMenu)
 		self.dbMenu.addSeparator()
-		self.dbMenu.addAction("Auto-fetch p&rices...",
+		self.dbMenu.addAction("Update p&rices...",
 				      self.fetchPrices)
 
 		self.statMenu = QMenu("&Statistics", self)

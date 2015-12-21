@@ -24,3 +24,12 @@ from PySide.QtGui import *
 
 from partmgr.core.exception import *
 from partmgr.core.util import *
+
+
+def copyStrToClipboard(string):
+	clipboard = QApplication.clipboard()
+	for clip in (QClipboard.Clipboard, QClipboard.Selection):
+		if string:
+			clipboard.setText(string, clip)
+		else:
+			clipboard.clear(clip)

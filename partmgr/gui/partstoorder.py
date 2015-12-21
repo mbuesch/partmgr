@@ -126,12 +126,7 @@ class PartsToOrderDialog(QDialog):
 					menu.addAction("Copy '%s' order "
 						"code" % suppName,
 						lambda code = orderCode:
-							self.__copyStrToClipboard(code))
+							copyStrToClipboard(code))
 					count += 1
 				if count:
 					menu.exec_(QCursor.pos())
-
-	def __copyStrToClipboard(self, string):
-		clipboard = QApplication.clipboard()
-		clipboard.setText(string, QClipboard.Clipboard)
-		clipboard.setText(string, QClipboard.Selection)

@@ -959,6 +959,40 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	def getAllStockItems(self):
+		if not self.isOpen():
+			return []
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT id, name, description, flags, "
+				  "createTimeStamp, "
+				  "modifyTimeStamp, "
+				  "part, category, footprint, "
+				  "minQuantity, targetQuantity, "
+				  "quantityUnits "
+				  "FROM stock "
+				  "ORDER BY id;")
+			data = c.fetchall()
+			if not data:
+				return []
+			return [ StockItem(name = fromBase64(d[1]),
+					   description = fromBase64(d[2]),
+					   flags = int(d[3]),
+					   createTimeStamp = int(d[4]),
+					   modifyTimeStamp = int(d[5]),
+					   part = int(d[6]),
+					   category = int(d[7]),
+					   footprint = int(d[8]),
+					   minQuantity = int(d[9]),
+					   targetQuantity = int(d[10]),
+					   quantityUnits = int(d[11]),
+					   id = int(d[0]),
+					   db = self)
+				for d in data ]
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	def getStockItemsByCategory(self, category):
 		if not self.isOpen():
 			return []
@@ -1018,10 +1052,58 @@ class Database(object):
 				  "JOIN ( "
 				  "    SELECT storages.stockItem as sid, "
 				  "    SUM(storages.quantity) AS quantitySum "
-				  "    FROM storages GROUP BY sid "
+				  "    FROM storages "
+				  "    GROUP BY sid "
 				  ") "
 				  "ON (sid = stock.id) "
 				  "WHERE (quantitySum < stock.minQuantity);")
+			data = c.fetchall()
+			if not data:
+				return []
+			return [ StockItem(id = int(d[0]),
+					   name = fromBase64(d[1]),
+					   description = fromBase64(d[2]),
+					   flags = int(d[3]),
+					   createTimeStamp = int(d[4]),
+					   modifyTimeStamp = int(d[5]),
+					   part = int(d[6]),
+					   category = int(d[7]),
+					   footprint = int(d[8]),
+					   minQuantity = int(d[9]),
+					   targetQuantity = int(d[10]),
+					   quantityUnits = int(d[11]),
+					   db = self)
+				for d in data ]
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
+	def getStockItemsWithMissingPrice(self):
+		if not self.isOpen():
+			return []
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT stock.id, "
+				  "stock.name, "
+				  "stock.description, "
+				  "stock.flags, "
+				  "stock.createTimeStamp, "
+				  "stock.modifyTimeStamp, "
+				  "stock.part, "
+				  "stock.category, "
+				  "stock.footprint, "
+				  "stock.minQuantity, "
+				  "stock.targetQuantity, "
+				  "stock.quantityUnits "
+				  "FROM stock "
+				  "JOIN ( "
+				  "    SELECT origins.stockItem as sid, "
+				  "    MIN(origins.price) AS minPrice "
+				  "    FROM origins "
+				  "    GROUP BY sid "
+				  ") "
+				  "ON (sid = stock.id) "
+				  "WHERE (minPrice < 0);")
 			data = c.fetchall()
 			if not data:
 				return []

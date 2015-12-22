@@ -26,7 +26,10 @@ import time
 
 
 class ReicheltPriceFetcher(PriceFetcher):
-	supplierName = "Reichelt"
+	supplierNames = ("Reichelt",
+			 "reichelt.de",
+			 "www.reichelt.de",
+			 "secure.reichelt.de",)
 
 	def __init__(self, tls = True):
 		if tls:

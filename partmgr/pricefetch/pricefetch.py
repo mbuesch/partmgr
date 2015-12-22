@@ -54,7 +54,7 @@ class PriceFetcher(object):
 			else:
 				return "%s: not found" % self.orderCode
 
-	supplierName = None
+	supplierNames = None
 	host = None
 
 	_registeredFetchers = []
@@ -72,10 +72,11 @@ class PriceFetcher(object):
 
 	@classmethod
 	def get(cls, wantedSupplierName):
-		wantedSupplierName = wantedSupplierName.lower().strip()
+		stripCs = "/\\_-,.;:\"'()|"
+		wantedSupplierName = wantedSupplierName.lower().strip().strip(stripCs).strip()
 		for fetcher in cls._registeredFetchers:
-			supplierName = fetcher.supplierName.lower().strip()
-			if supplierName == wantedSupplierName:
+			if wantedSupplierName in (n.lower().strip().strip(stripCs).strip()
+						  for n in fetcher.supplierNames):
 				return fetcher
 		return None
 
@@ -117,4 +118,4 @@ class PriceFetcher(object):
 					postCallback(orderCode, callbackData)
 			except self.Error as e:
 				raise self.Error("Error while processing %s '%s':\n%s" % (
-					self.supplierName, orderCode, str(e)))
+					self.supplierNames[0], orderCode, str(e)))

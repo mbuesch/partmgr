@@ -104,10 +104,17 @@ class PriceFetcher(object):
 	def getPrice(self, orderCode):
 		raise NotImplementedError
 
-	def getPrices(self, orderCodes):
+	def getPrices(self, orderCodes,
+		      preCallback = None,
+		      postCallback = None,
+		      callbackData = None):
 		for orderCode in orderCodes:
 			try:
+				if preCallback:
+					preCallback(orderCode, callbackData)
 				yield self.getPrice(orderCode)
+				if postCallback:
+					postCallback(orderCode, callbackData)
 			except self.Error as e:
-				raise "Error while processing %s '%s':\n%s" % (
-					self.supplierName, orderCode, str(e))
+				raise self.Error("Error while processing %s '%s':\n%s" % (
+					self.supplierName, orderCode, str(e)))

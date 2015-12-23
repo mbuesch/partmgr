@@ -24,6 +24,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from partmgr.core.exception import *
+from partmgr.core.version import *
 
 
 STR_ENCODING = "UTF-8"

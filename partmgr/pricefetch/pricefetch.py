@@ -97,12 +97,14 @@ class PriceFetcher(object):
 		self.conn.request(method, url, body, headers)
 		self._relax()
 
-	def _getResponse(self):
+	def _getResponse(self, withHeaders = False):
 		self._relax()
 		response = self.conn.getresponse()
 		self._relax()
 		data = response.read()
 		self._relax()
+		if withHeaders:
+			return data, response.getheaders()
 		return data
 
 	def connect(self):

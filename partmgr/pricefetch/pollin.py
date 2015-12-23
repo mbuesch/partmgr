@@ -92,18 +92,15 @@ class PollinPriceFetcher(PriceFetcher):
 
 		# Remove the item from the basket.
 		body = urllib.parse.urlencode(
-			(("remoteAction", "deleteRemote"),
-			 ("type", "basket"),
-			 ("items", "{'items': ['[{"
-			 	   "\"artnrKurz\":\"%s\","
-				   "\"menge\":\"1\","
-				   "\"selected\":true,"
-				   "\"itemRow\":\"0\""
-				   "}]']}" % bestellnr)),
+			(("action", "delete"),
+			 ("doAction", ""),
+			 ("wkChk[00%s]" % bestellnr, "on"),
+			 ("wk_anzahl_0", "1"),
+			 ("gsn", "")),
 			encoding = "UTF-8",
 			errors = "ignore")
 		header["Content-Length"] = str(len(body))
-		self._sendRequest("POST", "/shop/ajax.html", body, header)
+		self._sendRequest("POST", "/shop/warenkorb.html", body, header)
 		self._getResponse()
 
 		# Extract the price from the basket.

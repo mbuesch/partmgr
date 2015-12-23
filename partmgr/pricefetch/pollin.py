@@ -64,11 +64,11 @@ class PollinPriceFetcher(PriceFetcher):
 		orderCode = orderCode.strip()
 		if not orderCode:
 			raise self.Error("Invalid empty Pollin order code.")
-		orderCode = orderCode.split("-")
-		if len(orderCode) == 1:
-			wkz, bestellnr = "", orderCode[0]
-		elif len(orderCode) == 2:
-			wkz, bestellnr = orderCode
+		codes = orderCode.split("-")
+		if len(codes) == 1:
+			wkz, bestellnr = "", codes[0]
+		elif len(codes) == 2:
+			wkz, bestellnr = codes
 		else:
 			raise self.Error("Invalid Pollin part number format "
 					 "(must be  00-000 000  or  000 000)")

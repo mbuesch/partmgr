@@ -41,8 +41,8 @@ class ReicheltPriceFetcher(PriceFetcher):
 
 	def __getSessionId(self):
 		for i in range(5):
-			self.conn.request("GET", "/")
-			resp = self.conn.getresponse().read().decode(
+			self._sendRequest("GET", "/")
+			resp = self._getResponse().decode(
 					"UTF-8", "ignore")
 			m = re.match(r'.*SID=(\w{53,53}).*', resp, re.DOTALL)
 			if m:
@@ -82,8 +82,8 @@ class ReicheltPriceFetcher(PriceFetcher):
 			encoding = "UTF-8",
 			errors = "ignore")
 		header["Content-Length"] = str(len(body))
-		self.conn.request("POST", postUrl, body, header)
-		basket = self.conn.getresponse().read().decode("UTF-8", "ignore")
+		self._sendRequest("POST", postUrl, body, header)
+		basket = self._getResponse().decode("UTF-8", "ignore")
 
 		# Extract the price from the basket.
 		m = re.match(r'.*<li class="PriceSum">(\d+,\d+) &euro;</li>.*',
@@ -106,8 +106,8 @@ class ReicheltPriceFetcher(PriceFetcher):
 			encoding = "UTF-8",
 			errors = "ignore")
 		header["Content-Length"] = str(len(body))
-		self.conn.request("POST", postUrl, body, header)
-		self.conn.getresponse()
+		self._sendRequest("POST", postUrl, body, header)
+		self._getResponse()
 
 		return self.Result(orderCode = orderCode,
 				   price = price)

@@ -90,6 +90,21 @@ class PriceFetcher(object):
 		except Exception as e:
 			pass
 
+	def _relax(self):
+		pass
+
+	def _sendRequest(self, method, url, body=None, headers={}):
+		self.conn.request(method, url, body, headers)
+		self._relax()
+
+	def _getResponse(self):
+		self._relax()
+		response = self.conn.getresponse()
+		self._relax()
+		data = response.read()
+		self._relax()
+		return data
+
 	def connect(self):
 		if not self.conn:
 			if self.tls:

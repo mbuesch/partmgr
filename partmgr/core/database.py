@@ -170,7 +170,6 @@ class Database(object):
 			"storages(" + entityColumns + ", "
 				 "stockItem INTEGER, location INTEGER, "
 				 "quantity INTEGER)",
-			#TODO add a history
 		)
 		c = self.db.cursor()
 		for table in tables:

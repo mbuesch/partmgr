@@ -23,7 +23,6 @@ from partmgr.gui.tree import *
 from partmgr.gui.stockitem import *
 from partmgr.gui.partselect import *
 from partmgr.gui.partstoorder import *
-from partmgr.gui.history import *
 from partmgr.gui.globalstats import *
 from partmgr.gui.footprintmanage import *
 from partmgr.gui.locationmanage import *
@@ -88,10 +87,6 @@ class PartMgrMainWidget(QWidget):
 		dlg = PartsToOrderDialog(self.db, self)
 		dlg.show()
 
-	def showHistory(self):
-		dlg = HistoryDialog(self.db, self)
-		dlg.exec_()
-
 	def manageGlobalParams(self):
 		dlg = GlobalParametersManageDialog(self.db, self)
 		dlg.edit()
@@ -150,8 +145,6 @@ class PartMgrMainWindow(QMainWindow):
 					self.showPartsToOrder)
 		self.statMenu.addAction("Show global &statistics...",
 					self.showGlobalStats)
-		self.statMenu.addAction("Show history...",
-					self.showHistory)
 		self.menuBar().addMenu(self.statMenu)
 
 		self.__enableDbMenus(False)
@@ -178,11 +171,6 @@ class PartMgrMainWindow(QMainWindow):
 		mainWidget = self.centralWidget()
 		if mainWidget:
 			mainWidget.showPartsToOrder()
-
-	def showHistory(self):
-		mainWidget = self.centralWidget()
-		if mainWidget:
-			mainWidget.showHistory()
 
 	def manageGlobalParams(self):
 		mainWidget = self.centralWidget()

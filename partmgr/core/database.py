@@ -125,7 +125,6 @@ class Database(object):
 			return
 
 		c = self.db.cursor()
-		pass#TODO collect orphan storages, origins and all other orphan objects.
 		c.execute("VACUUM;")
 		self.__commit()
 

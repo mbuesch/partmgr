@@ -98,12 +98,16 @@ class PriceFetchDialog(QDialog):
 			toFetch.setdefault(supplierName, []).append(
 				(tableItem, orderCode))
 
+		def relax(*args):
+			QApplication.processEvents(QEventLoop.AllEvents, 250)
+
 		# Fetch the prices.
 		for supplierName in sorted(toFetch):
 			try:
 				fetcherCls = PriceFetcher.get(supplierName)
 				if not fetcherCls:
 					continue
+				fetcherCls._relax = relax
 				fetcher = fetcherCls()
 			except PriceFetcher.Error as e:
 				continue
@@ -115,7 +119,7 @@ class PriceFetchDialog(QDialog):
 				tableItem, orderCode = toFetch[supplierName][cnt.count]
 				self.statusLine.setText("Fetching '%s' from %s..." % (
 					orderCode, supplierName))
-				QApplication.processEvents(QEventLoop.AllEvents, 250)
+				relax()
 
 			def postCallback(orderCode, cnt):
 				cnt.count = cnt.count + 1
@@ -131,7 +135,7 @@ class PriceFetchDialog(QDialog):
 				origin = self.db.getOrigin(tableItem.data(Qt.UserRole))
 				self.__setPriceResult(supplierName, tableItem, orderCode,
 						      origin, priceResult)
-				QApplication.processEvents(QEventLoop.AllEvents, 250)
+				relax()
 				if self.__stopRequested:
 					break
 		self.resultLine.clear()
@@ -187,6 +191,9 @@ class PriceFetchDialog(QDialog):
 
 	def __stop(self):
 		self.__stopRequested = True
+		self.stopButton.hide()
+		self.statusLine.setText("Stopping...")
+		QApplication.processEvents(QEventLoop.AllEvents, 250)
 
 	def __tabItem(self, text, origin):
 		item = QTableWidgetItem(text, QTableWidgetItem.UserType)

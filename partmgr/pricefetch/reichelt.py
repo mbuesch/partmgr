@@ -85,6 +85,15 @@ class ReicheltPriceFetcher(PriceFetcher):
 		self._sendRequest("POST", postUrl, body, header)
 		basket = self._getResponse().decode("UTF-8", "ignore")
 
+		# Remove the item from the basket.
+		body = urllib.parse.urlencode(
+			(("Delete[_all_]", "WK löschen"),),
+			encoding = "UTF-8",
+			errors = "ignore")
+		header["Content-Length"] = str(len(body))
+		self._sendRequest("POST", postUrl, body, header)
+		self._getResponse()
+
 		# Extract the price from the basket.
 		m = re.match(r'.*<li class="PriceSum">(\d+,\d+) &euro;</li>.*',
 			     basket, re.DOTALL)
@@ -99,15 +108,6 @@ class ReicheltPriceFetcher(PriceFetcher):
 		except ValueError as e:
 			return self.Result(orderCode = orderCode,
 					   status = self.Result.NOTFOUND)
-
-		# Remove the item from the basket.
-		body = urllib.parse.urlencode(
-			(("Delete[_all_]", "WK löschen"),),
-			encoding = "UTF-8",
-			errors = "ignore")
-		header["Content-Length"] = str(len(body))
-		self._sendRequest("POST", postUrl, body, header)
-		self._getResponse()
 
 		return self.Result(orderCode = orderCode,
 				   price = price)

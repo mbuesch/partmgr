@@ -164,7 +164,7 @@ class PartMgrMainWindow(QMainWindow):
 		self.statMenu.setEnabled(enabled)
 
 	def updateTitle(self, filename=None):
-		title = "Part manager"
+		title = "Part manager v%s" % VERSION_STRING
 		if filename:
 			title += " - " + filename
 		self.setWindowTitle(title)

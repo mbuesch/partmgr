@@ -57,10 +57,12 @@ class AbstractProtectedWidget(QWidget):
 		return size
 
 	def setEditWidget(self, widget):
+		widget.hide()
 		if self.editWidget:
 			self.layout().removeWidget(self.editWidget)
 		self.layout().addWidget(widget)
 		self.editWidget = widget
+		self.setProtected()
 
 	def setProtected(self, prot=True):
 		if prot:

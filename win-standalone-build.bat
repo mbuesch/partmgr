@@ -18,12 +18,12 @@ echo Building standalone Windows executable for partmgr v%version%...
 echo.
 
 echo Please select GUI framework:
-REM echo   1)  Build with PyQt5 (default)
-echo   1)  Build with PySide4 (default)
+echo   1)  Build with PyQt5 (default)
+echo   2)  Build with PySide4 (default)
 set /p framework=Selection: 
 if "%framework%" == "" goto framework_pyside4
-REM if "%framework%" == "1" goto framework_pyqt5
-if "%framework%" == "1" goto framework_pyside4
+if "%framework%" == "1" goto framework_pyqt5
+if "%framework%" == "2" goto framework_pyside4
 echo "Error: Invalid selection"
 pause
 exit

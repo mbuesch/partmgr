@@ -19,9 +19,9 @@ echo.
 
 echo Please select GUI framework:
 echo   1)  Build with PyQt5 (default)
-echo   2)  Build with PySide4 (default)
+echo   2)  Build with PySide4
 set /p framework=Selection: 
-if "%framework%" == "" goto framework_pyside4
+if "%framework%" == "" goto framework_pyqt5
 if "%framework%" == "1" goto framework_pyqt5
 if "%framework%" == "2" goto framework_pyside4
 echo "Error: Invalid selection"

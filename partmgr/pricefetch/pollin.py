@@ -107,7 +107,7 @@ class PollinPriceFetcher(PriceFetcher):
 		m = re.match(r'.*'
 			     r'<td class="articleAvailability">\s*'
 			     r'<img src="/shop/images/spacer.gif"\s+'
-			     r'alt="[\w\s&;äöü\-]+"\s*/>\s*'
+			     r'alt="[\w\s&;äöüÄÖÜ\-]+"\s*/>\s*'
 			     r'</td>\s*'
 			     r'<td>\s*'
 			     r'(\d+,\d+)\s+&euro;\s*'

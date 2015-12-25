@@ -28,7 +28,7 @@ from partmgr.core.entity import *
 class ItemSelectWidget(QWidget):
 	"Abstract item selection widget"
 
-	selectionChanged = Signal(Entity)
+	selectionChanged = Signal(object)
 
 	def __init__(self, parent=None,
 		     actionButtonLabel=None,

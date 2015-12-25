@@ -49,7 +49,7 @@ class PartMgrMainWidget(QWidget):
 		self.setLayout(QGridLayout(self))
 		self.db = db
 
-		self.splitter = QSplitter(self, Qt.Horizontal)
+		self.splitter = QSplitter(Qt.Horizontal, self)
 		self.layout().addWidget(self.splitter, 0, 0)
 
 		self.tree = Tree(db, self)

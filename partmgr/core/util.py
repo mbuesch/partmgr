@@ -20,8 +20,8 @@
 #
 
 import base64
-from PySide.QtCore import *
-from PySide.QtGui import *
+
+from partmgr.qt_bindings import *
 
 from partmgr.core.exception import *
 from partmgr.core.version import *

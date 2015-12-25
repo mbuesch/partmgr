@@ -19,8 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from partmgr.qt_bindings import *
 
 from partmgr.core.exception import *
 from partmgr.core.util import *

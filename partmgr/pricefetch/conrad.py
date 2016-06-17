@@ -119,13 +119,7 @@ class ConradPriceFetcher(PriceFetcher):
 		self._getResponse()
 
 		# Extract the price from the basket.
-		m = re.match(r'.*'
-			     r'<td class="ce-sp">\s*'
-			     r'<strong class="price">\s*'
-			     r'(\d+,\d+)\s*€\*\s*'
-			     r'</strong>\s*'
-			     r'</td>\s*'
-			     r'.*',
+		m = re.match(r'.*<div\sclass="ccpProductListCartItem__price">(\d+,\d+)\s.*',
 			     basket, re.DOTALL)
 		if not m:
 			return self.Result(orderCode = orderCode,

@@ -333,12 +333,13 @@ class Tree(QTreeView):
 
 	def currentChanged(self, selected, deselected):
 		QTreeView.currentChanged(self, selected, deselected)
-		selected = self.model().mapToSource(selected)
-		treeItem = self.realModel().modelIndexToTreeItem(selected)
-		if treeItem.entityType == TreeItem.STOCKITEM:
-			self.itemChanged.emit(treeItem.entityId)
-		else:
-			self.itemChanged.emit(None)
+		if selected.isValid():
+			selected = self.model().mapToSource(selected)
+			treeItem = self.realModel().modelIndexToTreeItem(selected)
+			if treeItem.entityType == TreeItem.STOCKITEM:
+				self.itemChanged.emit(treeItem.entityId)
+			else:
+				self.itemChanged.emit(None)
 
 	def contextMenuEvent(self, event):
 		index = self.indexAt(event.pos())

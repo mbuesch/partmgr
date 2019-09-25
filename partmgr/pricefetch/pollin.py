@@ -129,4 +129,4 @@ class PollinPriceFetcher(PriceFetcher):
 		return self.Result(orderCode = orderCode,
 				   price = price)
 
-PollinPriceFetcher.register()
+#PollinPriceFetcher.register()

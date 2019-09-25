@@ -136,4 +136,4 @@ class ConradPriceFetcher(PriceFetcher):
 		return self.Result(orderCode = orderCode,
 				   price = price)
 
-ConradPriceFetcher.register()
+#ConradPriceFetcher.register()

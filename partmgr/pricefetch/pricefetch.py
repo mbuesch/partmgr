@@ -109,30 +109,48 @@ class PriceFetcher(object):
 
 	def connect(self):
 		if not self.conn:
-			if self.tls:
-				self.conn = http.client.HTTPSConnection(self.host)
-			else:
-				self.conn = http.client.HTTPConnection(self.host)
+			try:
+				if self.tls:
+					self.conn = http.client.HTTPSConnection(self.host)
+				else:
+					self.conn = http.client.HTTPConnection(self.host)
+			except http.client.HTTPException as e:
+				raise self.Error("Error while connecting to %s:\n%s" % (
+					self.supplierNames[0], str(e)))
 
 	def disconnect(self):
 		if self.conn:
-			self.conn.close()
+			try:
+				self.conn.close()
+			except http.client.HTTPException as e:
+				pass
 			self.conn = None
 
-	def getPrice(self, orderCode):
+	def _getPrice(self, orderCode):
 		raise NotImplementedError
 
 	def getPrices(self, orderCodes,
-		      preCallback = None,
-		      postCallback = None,
-		      callbackData = None):
+		      preCallback=None,
+		      postCallback=None):
 		for orderCode in orderCodes:
-			try:
-				if preCallback:
-					preCallback(orderCode, callbackData)
-				yield self.getPrice(orderCode)
-				if postCallback:
-					postCallback(orderCode, callbackData)
-			except self.Error as e:
-				raise self.Error("Error while processing %s '%s':\n%s" % (
-					self.supplierNames[0], orderCode, str(e)))
+			tries = 0
+			while 1:
+				tries += 1
+				try:
+					if preCallback:
+						preCallback(orderCode)
+					yield self._getPrice(orderCode)
+					if postCallback:
+						postCallback(orderCode)
+				except http.client.HTTPException as e:
+					if tries < 5:
+						print("Price fetch %s '%s' failed. Retrying..." % (
+						      self.supplierNames[0], orderCode))
+						self.disconnect()
+						continue
+					raise self.Error("Error while processing %s '%s':\n%s" % (
+						self.supplierNames[0], orderCode, str(e)))
+				except self.Error as e:
+					raise self.Error("Error while processing %s '%s':\n%s" % (
+						self.supplierNames[0], orderCode, str(e)))
+				break

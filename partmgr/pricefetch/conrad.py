@@ -59,7 +59,7 @@ class ConradPriceFetcher(PriceFetcher):
 			self.__sid = None
 			PriceFetcher.disconnect(self)
 
-	def getPrice(self, orderCode):
+	def _getPrice(self, orderCode):
 		self.connect()
 
 		orderCode = orderCode.strip()

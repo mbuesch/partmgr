@@ -112,26 +112,25 @@ class PriceFetchDialog(QDialog):
 			except PriceFetcher.Error as e:
 				continue
 
-			class Count(object):
-				count = 0
+			count = 0
 
-			def preCallback(orderCode, cnt):
-				tableItem, orderCode = toFetch[supplierName][cnt.count]
+			def preCallback(orderCode):
+				nonlocal count
+				tableItem, orderCode = toFetch[supplierName][count]
 				self.statusLine.setText("Fetching '%s' from %s..." % (
 					orderCode, supplierName))
 				relax()
 
-			def postCallback(orderCode, cnt):
-				cnt.count = cnt.count + 1
+			def postCallback(orderCode):
+				nonlocal count
+				count += 1
 
 			orderCodes = (orderCode
 				      for tableRow, orderCode in toFetch[supplierName])
-			cnt = Count()
 			for priceResult in fetcher.getPrices(orderCodes,
-							     preCallback = preCallback,
-							     postCallback = postCallback,
-							     callbackData = cnt):
-				tableItem, orderCode = toFetch[supplierName][cnt.count]
+							     preCallback=preCallback,
+							     postCallback=postCallback):
+				tableItem, orderCode = toFetch[supplierName][count]
 				origin = self.db.getOrigin(tableItem.data(Qt.UserRole))
 				self.__setPriceResult(supplierName, tableItem, orderCode,
 						      origin, priceResult)

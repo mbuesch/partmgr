@@ -2,7 +2,7 @@
 #
 # PartMgr - Database
 #
-# Copyright 2014-2015 Michael Buesch <m@bues.ch>
+# Copyright 2014-2019 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,7 +32,60 @@ from partmgr.core.supplier import *
 from partmgr.core.util import *
 
 import sqlite3 as sql
+import functools
 
+
+class DatabaseCache(object):
+	"""LRU caching decorators for Database.
+	"""
+
+	# Main switch
+	ENABLED		= True
+
+	# Cache types
+	CATEGORY	= 0
+	STOCKITEM	= 1
+	ALL		= (CATEGORY,
+			   STOCKITEM)
+
+	def __init__(self):
+		self.__cachesByType = {}
+
+	def cache(self, cacheType):
+		"""Returns an LRU cache fetch decorator.
+		"""
+		caches = self.__cachesByType.setdefault(cacheType, {})
+		def decorator(func):
+			@functools.wraps(func)
+			def wrapper(_self, *args, **kwargs):
+				if self.ENABLED:
+					key = (_self, func)
+					if key not in caches:
+						caches[key] = functools.lru_cache(maxsize=2**10)(func)
+					return caches[key](_self, *args, **kwargs)
+				else:
+					return func(_self, *args, **kwargs)
+			return wrapper
+		return decorator
+
+	def clearCache(self, cacheTypes):
+		"""Returns an LRU cache clear decorator.
+		"""
+		if isinstance(cacheTypes, int):
+			cacheTypes = (cacheTypes,)
+		def decorator(func):
+			@functools.wraps(func)
+			def wrapper(_self, *args, **kwargs):
+				for cacheType in cacheTypes:
+					caches = self.__cachesByType.get(cacheType, None)
+					if caches:
+						for c in caches.values():
+							c.cache_clear()
+				return func(_self, *args, **kwargs)
+			return wrapper
+		return decorator
+
+databaseCache = DatabaseCache()
 
 class Database(object):
 	"Part database interface."
@@ -46,6 +99,7 @@ class Database(object):
 		"currency"	: ("Price currency", Param_Currency.CURR_EUR),
 	}
 
+	@databaseCache.clearCache(databaseCache.ALL)
 	def __init__(self, filename):
 		self.__hadChanges = False
 		try:
@@ -71,6 +125,12 @@ class Database(object):
 			self.filename = None
 			self.__databaseError(e)
 
+	def __eq__(self, other):
+		return self is other
+
+	def __hash__(self):
+		return hash(id(self))
+
 	def __repr__(self):
 		return "Database(%s)" % str(self.filename)
 
@@ -81,6 +141,7 @@ class Database(object):
 	def isOpen(self):
 		return bool(self.filename)
 
+	@databaseCache.clearCache(databaseCache.ALL)
 	def close(self, collectGarbage = True, updateRevision = True):
 		if not self.isOpen():
 			return
@@ -467,6 +528,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.cache(databaseCache.CATEGORY)
 	def getCategory(self, category):
 		if not self.isOpen():
 			return None
@@ -501,6 +563,7 @@ class Database(object):
 	def countRootCategories(self):
 		return self.countChildCategories(None)
 
+	@databaseCache.cache(databaseCache.CATEGORY)
 	def getChildCategories(self, parentCategory):
 		if not self.isOpen():
 			return []
@@ -530,6 +593,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.cache(databaseCache.CATEGORY)
 	def countChildCategories(self, parentCategory):
 		if not self.isOpen():
 			return 0
@@ -548,6 +612,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.clearCache(databaseCache.CATEGORY)
 	def modifyCategory(self, category):
 		if not self.isOpen():
 			return
@@ -589,6 +654,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.clearCache(databaseCache.CATEGORY)
 	def delCategory(self, category):
 		if not self.isOpen():
 			return
@@ -922,6 +988,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.cache(databaseCache.STOCKITEM)
 	def getStockItem(self, stockItem):
 		if not self.isOpen():
 			return None
@@ -957,6 +1024,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.cache(databaseCache.STOCKITEM)
 	def getAllStockItems(self):
 		if not self.isOpen():
 			return []
@@ -991,6 +1059,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.cache(databaseCache.STOCKITEM)
 	def getStockItemsByCategory(self, category):
 		if not self.isOpen():
 			return []
@@ -1122,6 +1191,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.cache(databaseCache.STOCKITEM)
 	def countStockItemsByCategory(self, category):
 		if not self.isOpen():
 			return 0
@@ -1140,6 +1210,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.clearCache(databaseCache.STOCKITEM)
 	def modifyStockItem(self, stockItem):
 		if not self.isOpen():
 			return
@@ -1197,6 +1268,7 @@ class Database(object):
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.clearCache(databaseCache.STOCKITEM)
 	def delStockItem(self, stockItem):
 		if not self.isOpen():
 			return

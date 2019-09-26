@@ -131,6 +131,11 @@ class Entity(object):
 	def __ne__(self, other):
 		return not self.__eq__(other)
 
+	def __hash__(self):
+		return (hash(self.entityType) ^
+			hash(self.db) ^
+			hash(self.id))
+
 	def __repr__(self):
 		args = []
 		args.append(str(self.name))

@@ -68,6 +68,10 @@ class Category(Entity):
 		return Entity.__eq__(self, other) and\
 		       self.parent == other.parent
 
+	def __hash__(self):
+		return (super().__hash__() ^
+			hash(self.parent))
+
 	def __repr__(self):
 		args = []
 		args.append(str(self.name))

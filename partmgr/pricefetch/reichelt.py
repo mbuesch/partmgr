@@ -95,7 +95,9 @@ class ReicheltPriceFetcher(PriceFetcher):
 		self._getResponse()
 
 		# Extract the price from the basket.
-		m = re.match(r'.*<span class="tablet einzelpreis">Einzelpreis</span><span>(\d+,\d+)</span>.*',
+		m = re.match(r'.*<span class="tablet einzelpreis">Einzelpreis</span>'
+			     r'(?:\s*<s class="streichpreis"><span>\d+,\d+</span>&nbsp;&euro;</s>\s*)?'
+			     r'<span>(\d+,\d+)</span>.*',
 			     basket, re.DOTALL)
 		if not m:
 			return self.Result(orderCode = orderCode,

@@ -76,7 +76,7 @@ class ConradPriceFetcher(PriceFetcher):
 		productCode = re.sub(r'\s', "", productCode)
 		productCodeFlag = re.sub(r'\s', "", productCodeFlag)
 
-		header = self._defaultHttpHeader.copy()
+		header = self._defaultHttpHeaders.copy()
 		header["Cookie"] = "sessionid=" + self.__sid
 
 		# Add the item to the basket

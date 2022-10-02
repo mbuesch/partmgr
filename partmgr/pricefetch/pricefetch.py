@@ -59,8 +59,8 @@ class PriceFetcher(object):
 
 	_registeredFetchers = []
 
-	_defaultHttpHeader = {
-		"User-Agent" : "PartMgrBot/1.0 (+https://www.example.com/)",
+	_defaultHttpHeaders = {
+		"User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0",
 		"Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 		"Accept-Language" : "*",
 		"Accept-Charset" : "utf-8,*;q=0.9",
@@ -94,6 +94,8 @@ class PriceFetcher(object):
 		pass
 
 	def _sendRequest(self, method, url, body=None, headers={}):
+		if not headers:
+			headers = self._defaultHttpHeaders
 		self.conn.request(method, url, body, headers)
 		self._relax()
 

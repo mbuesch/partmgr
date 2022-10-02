@@ -72,7 +72,7 @@ class ReicheltPriceFetcher(PriceFetcher):
 		postUrl = "/Warenkorb/5/index.html?" \
 			  "&ACTION=5&LA=0;SID=" + self.__sid
 
-		header = self._defaultHttpHeader.copy()
+		header = self._defaultHttpHeaders.copy()
 		header["Content-Type"] = "application/x-www-form-urlencoded"
 
 		# Add the item to the basket

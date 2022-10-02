@@ -75,7 +75,7 @@ class PollinPriceFetcher(PriceFetcher):
 		wkz = re.sub(r'\s', "", wkz)
 		bestellnr = re.sub(r'\s', "", bestellnr)
 
-		header = self._defaultHttpHeader.copy()
+		header = self._defaultHttpHeaders.copy()
 		header["Cookie"] = "PHPSESSID=" + self.__sid + "; pollincookie=1"
 		header["Content-Type"] = "application/x-www-form-urlencoded"
 

@@ -2,7 +2,7 @@
 #
 # PartMgr - Abstract entity
 #
-# Copyright 2014-2015 Michael Buesch <m@bues.ch>
+# Copyright 2014-2022 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ from partmgr.core.timestamp import *
 from partmgr.core.util import *
 
 
-class Entity(object):
+class Entity:
 	"Abstract entity base class."
 
 	FLG_OFFSET = 8	# Offset for user-flags

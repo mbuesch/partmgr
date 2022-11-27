@@ -2,7 +2,7 @@
 #
 # PartMgr - Price fetching
 #
-# Copyright 2015 Michael Buesch <m@bues.ch>
+# Copyright 2015-2022 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,13 +26,13 @@ import http.client
 import urllib.parse
 
 
-class PriceFetcher(object):
+class PriceFetcher:
 	"""Part price fetcher."""
 
 	class Error(Exception):
 		pass
 
-	class Result(object):
+	class Result:
 		FOUND = True
 		NOTFOUND = False
 

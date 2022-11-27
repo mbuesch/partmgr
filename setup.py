@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from partmgr.core.version import VERSION_STRING
-from distutils.core import setup
+from setuptools import setup
 import sys
 try:
 	import py2exe

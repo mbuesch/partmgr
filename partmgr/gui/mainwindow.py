@@ -150,7 +150,7 @@ class PartMgrMainWindow(QMainWindow):
 		self.__enableDbMenus(False)
 		self.updateTitle()
 
-		self.resize(QSize(1000, 470))
+		self.resize(QSize(1200, 800))
 
 	def __enableDbMenus(self, enabled):
 		self.dbMenu.setEnabled(enabled)

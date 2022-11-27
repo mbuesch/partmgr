@@ -113,12 +113,20 @@ class TreeModel(QAbstractItemModel):
 		treeItem.modelIndex = modelIndex
 		return treeItem
 
+	def supportedDropActions(self):
+		return Qt.DropAction.CopyAction | Qt.DropAction.MoveAction
+
 	def flags(self, index):
 		if not index.isValid():
 			return Qt.ItemFlag.NoItemFlags
-		return Qt.ItemFlag.ItemIsEnabled |\
-		       Qt.ItemFlag.ItemIsSelectable |\
-		       Qt.ItemFlag.ItemIsEditable
+		treeItem = self.modelIndexToTreeItem(index)
+		flags = (Qt.ItemFlag.ItemIsEnabled |
+			 Qt.ItemFlag.ItemIsSelectable |
+			 Qt.ItemFlag.ItemIsEditable |
+			 Qt.ItemFlag.ItemIsDragEnabled)
+		if treeItem.entityType == TreeItem.CATEGORY:
+			flags |= Qt.ItemFlag.ItemIsDropEnabled
+		return flags
 
 	def columnCount(self, parentIndex=QModelIndex()):
 		return 1
@@ -211,6 +219,55 @@ class TreeModel(QAbstractItemModel):
 		if role == Qt.ItemDataRole.DisplayRole:
 			return "Stock items"
 		return None
+
+	def mimeData(self, indexes):
+		if not indexes:
+			return None
+		mimeData = QMimeData()
+		for index in indexes:
+			if not index.isValid():
+				continue
+			treeItem = self.modelIndexToTreeItem(index)
+
+			if treeItem.entityType == TreeItem.CATEGORY:
+				pass#TODO
+				mimeData.setData("application/x-partmgr-xml-category",
+						 dataBytes)
+			elif treeItem.entityType == TreeItem.STOCKITEM:
+				pass#TODO
+				mimeData.setData("application/x-partmgr-xml-stockitem",
+						 dataBytes)
+			else:
+				assert False
+		return mimeData
+
+	def dropMimeData(self, mimeData, action, row, column, parentIndex):
+		if self.__dropMimeData(mimeData, action, row, column, parentIndex):
+			return True
+		return False
+
+	def mimeTypes(self):
+		return [
+			"application/x-partmgr-xml-category",
+			"application/x-partmgr-xml-stockitem",
+		]
+
+	def canDropMimeData(self, mimeData, action, row, column, parentIndex):
+		if not parentIndex.isValid():
+			return False
+		if action not in (Qt.DropAction.MoveAction,
+				  Qt.DropAction.CopyAction):
+			return False
+		formats = mimeData.formats()
+		parentTreeItem = self.modelIndexToTreeItem(parentIndex)
+		if parentTreeItem.entityType == TreeItem.CATEGORY:
+			if "application/x-partmgr-xml-category" in formats or\
+			   "application/x-partmgr-xml-stockitem" in formats:
+				return True
+		return False
+
+	def __dropMimeData(self, mimeData, action, row, column, parentIndex):
+		pass#TODO
 
 	# Add a new StockItem to the database
 	def addStockItem(self, parentTreeItem, stockItem):
@@ -312,6 +369,12 @@ class Tree(QTreeView):
 	def __init__(self, db, parent=None):
 		QTreeView.__init__(self, parent)
 		self.db = db
+
+		self.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
+		self.setDefaultDropAction(Qt.DropAction.MoveAction)
+		self.setAcceptDrops(True)
+		self.setDragEnabled(True)
+		self.setDropIndicatorShown(True)
 
 		model = TreeModel(db, self)
 		proxyModel = QSortFilterProxyModel(self)

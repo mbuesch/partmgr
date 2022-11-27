@@ -2,7 +2,7 @@
 #
 # PartMgr - Category descriptor
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2022 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,10 +21,43 @@
 
 from partmgr.core.entity import *
 from partmgr.core.util import *
+from partmgr.core.xmlfactory import XmlFactory
 
+class Category_XmlFactory(XmlFactory):
+	def parser_open(self, tag=None, parentFactory=None):
+		assert tag.name == "entity"
+		assert tag.getAttr("entityType") == "category"
+		assert isinstance(parentFactory, Entity_XmlFactory)
+
+		category = parentFactory.entity
+		assert isinstance(category, Category)
+
+		#TODO
+		super().parser_open(self, tag)
+
+	def parser_beginTag(self, tag):
+		pass#TODO
+
+	def parser_endTag(self, tag):
+		pass#TODO
+
+	def composer_getTags(self):
+		category = self.category
+		tags = Entity_XmlFactory(entity=category).composer_getTags()
+		assert len(tags) == 1
+
+		tags[0].attrs["parent"] = str(category.parent)
+
+		#TODO child categories
+
+		#TODO child stock items
+
+		return tags
 
 class Category(Entity):
 	"Category descriptor."
+
+	XmlFactory = Category_XmlFactory
 
 	def __init__(self, name,
 		     parent=None,

@@ -2,34 +2,24 @@
 
 from partmgr.core.version import VERSION_STRING
 from setuptools import setup
-import sys
 try:
-	import py2exe
-except ImportError as e:
-	py2exe = None
-try:
-	if py2exe and "py2exe" in sys.argv:
-		raise ImportError
 	from cx_Freeze import setup, Executable
 	cx_Freeze = True
 except ImportError as e:
 	cx_Freeze = False
 
-
 freezeExecutables = [ ("partmgr-gui", None), ]
 extraKeywords = {}
-if py2exe:
-	extraKeywords["console"] = [ s for s, e in freezeExecutables ]
 if cx_Freeze:
 	executables = []
 	for script, exe in freezeExecutables:
 		if exe:
 			if os.name.lower() in ("nt", "ce"):
 				exe += ".exe"
-			executables.append(Executable(script = script,
-						      targetName = exe))
+			executables.append(Executable(script=script,
+						      targetName=exe))
 		else:
-			executables.append(Executable(script = script))
+			executables.append(Executable(script=script))
 	extraKeywords["executables"] = executables
 	extraKeywords["options"] = {
 			"build_exe"     : {

@@ -1,5 +1,6 @@
+graft maintenance
+graft tests
 include COPYING
 include example.pmg
 include partmgr-win.bat
 include win-standalone-build.bat
-graft tests

@@ -21,10 +21,61 @@
 
 from partmgr.core.timestamp import *
 from partmgr.core.util import *
+from partmgr.core.xmlfactory import XmlFactory
+import contextlib
 
+class Entity_XmlFactory(XmlFactory):
+	def parser_open(self, tag=None, parentFactory=None):
+		super().parser_open(self, tag)
+
+	def parser_beginTag(self, tag):
+		if tag.name == "entity":
+			from partmgr.core.category import Category
+			from partmgr.core.stockitem import StockItem
+
+			entityType = tag.getAttr("entityType")
+			type2class = {
+				"category" : Category,
+				"stockitem" : StockItem,
+			}
+			entityClass = None
+			with contextlib.suppress(KeyError):
+				entityClass = type2class[entityType]
+			if entityClass:
+				self.entity = entityClass(
+					id=tag.getAttr("id"),
+					name=tag.getAttr("name"),
+					description=tag.getAttr("description"),
+					flags=tag.getAttr("flags"),
+					createTimeStamp=tag.getAttr("createTimeStamp"),
+					modifyTimeStamp=tag.getAttr("modifyTimeStamp"),
+				)
+				self.parser_switchTo(entityClass.XmlFactory())
+				return
+		super().parser_beginTag(tag)
+
+	def parser_endTag(self, tag):
+		super().parser_endTag(tag)
+
+	def composer_getTags(self):
+		entity = self.entity
+		return [ self.Tag(
+			name="entity",
+			attrs={
+				"id" : str(entity.id),
+				"name" : str(entity.name),
+				"description" : str(entity.description),
+				"flags" : str(entity.flags),
+				"createTimeStamp" : str(entity.createTimeStamp.getStampInt()),
+				"modifyTimeStamp" : str(entity.modifyTimeStamp.getStampInt()),
+				"entityType" : str(entity.entityType).lower(),
+			},
+		) ]
 
 class Entity:
 	"Abstract entity base class."
+
+	XmlFactory = Entity_XmlFactory
 
 	FLG_OFFSET = 8	# Offset for user-flags
 

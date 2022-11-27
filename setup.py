@@ -1,33 +1,36 @@
 #!/usr/bin/env python3
 
-from partmgr.core.version import VERSION_STRING
 from setuptools import setup
-try:
+import os
+import sys
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, basedir)
+
+from partmgr.core.version import VERSION_STRING
+
+if os.name.lower() == "nt":
 	from cx_Freeze import setup, Executable
 	cx_Freeze = True
-except ImportError as e:
+else:
 	cx_Freeze = False
 
-freezeExecutables = [ ("partmgr-gui", None), ]
 extraKeywords = {}
 if cx_Freeze:
-	executables = []
-	for script, exe in freezeExecutables:
-		if exe:
-			if os.name.lower() in ("nt", "ce"):
-				exe += ".exe"
-			executables.append(Executable(script=script,
-						      targetName=exe))
-		else:
-			executables.append(Executable(script=script))
-	extraKeywords["executables"] = executables
+	extraKeywords["executables"] = [
+		Executable(script="partmgr-gui"),
+	]
 	extraKeywords["options"] = {
-			"build_exe"     : {
-				"packages"      : [ "partmgr", ],
-			}
+		"build_exe" : {
+			"packages" : [ "partmgr", ],
 		}
+	}
 
-setup(	name		= "partmgr",
+with open(os.path.join(basedir, "README.rst"), "rb") as fd:
+	readmeText = fd.read().decode("UTF-8")
+
+setup(
+	name		= "partmgr",
 	version		= VERSION_STRING,
 	description	= "Part manager",
 	license		= "GNU General Public License v2 or later",
@@ -42,6 +45,7 @@ setup(	name		= "partmgr",
 	keywords	= [ ],
 	classifiers	= [
 	],
-#	long_description = open("README.txt").read(),
+	long_description=readmeText,
+	long_description_content_type="text/x-rst",
 	**extraKeywords
 )

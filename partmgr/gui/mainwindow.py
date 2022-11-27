@@ -49,7 +49,7 @@ class PartMgrMainWidget(QWidget):
 		self.setLayout(QGridLayout(self))
 		self.db = db
 
-		self.splitter = QSplitter(Qt.Horizontal, self)
+		self.splitter = QSplitter(Qt.Orientation.Horizontal, self)
 		self.layout().addWidget(self.splitter, 0, 0)
 
 		self.tree = Tree(db, self)
@@ -67,7 +67,7 @@ class PartMgrMainWidget(QWidget):
 		self.editEnable.stateChanged.connect(self.__editChanged)
 
 	def __editChanged(self, newState):
-		self.stock.setProtected(newState != Qt.Checked)
+		self.stock.setProtected(newState != Qt.CheckState.Checked.value)
 
 	def itemChanged(self, stockItemId):
 		stockItem = None
@@ -81,7 +81,7 @@ class PartMgrMainWidget(QWidget):
 
 	def showGlobalStats(self):
 		dlg = GlobalStatsDialog(self.db, self)
-		dlg.exec_()
+		dlg.exec()
 
 	def showPartsToOrder(self):
 		dlg = PartsToOrderDialog(self.db, self)
@@ -109,7 +109,7 @@ class PartMgrMainWidget(QWidget):
 
 	def fetchPrices(self):
 		dlg = PriceFetchDialog(self.db, self)
-		dlg.exec_()
+		dlg.exec()
 		self.stock.updateData()
 
 class PartMgrMainWindow(QMainWindow):
@@ -202,8 +202,8 @@ class PartMgrMainWindow(QMainWindow):
 				"Load database", "",
 				"PartMgr files (*.pmg);;"
 				"All files (*)",
-				"", QFileDialog.DontConfirmOverwrite |
-				QFileDialog.DontUseNativeDialog)
+				"", QFileDialog.Option.DontConfirmOverwrite |
+				QFileDialog.Option.DontUseNativeDialog)
 		if not fn:
 			return
 		filt = filt.split('(')[1].split(')')[0].strip()

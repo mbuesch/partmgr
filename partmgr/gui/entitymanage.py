@@ -75,10 +75,10 @@ class AbstractEntityManageDialog(QDialog):
 	class ListItem(QListWidgetItem):
 		def __init__(self, entity):
 			QListWidgetItem.__init__(self, entity.getName())
-			self.setData(Qt.UserRole, entity)
+			self.setData(Qt.ItemDataRole.UserRole, entity)
 
 		def getEntity(self):
-			return self.data(Qt.UserRole)
+			return self.data(Qt.ItemDataRole.UserRole)
 
 	def __init__(self, db, title,
 		     entitySpecificWidget=None, parent=None,
@@ -92,7 +92,7 @@ class AbstractEntityManageDialog(QDialog):
 		self.updateBlocked = 0
 
 		self.titleLabel = QLabel(title, self)
-		self.titleLabel.setAlignment(Qt.AlignCenter)
+		self.titleLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		font = self.titleLabel.font()
 		font.setPointSize(12)
 		self.titleLabel.setFont(font)
@@ -196,7 +196,7 @@ class AbstractEntityManageDialog(QDialog):
 
 	def edit(self, selectEntity=None):
 		self.updateData(selectEntity)
-		return self.exec_()
+		return self.exec()
 
 	def entSelChanged(self, item=None, prevItem=None):
 		self.updateBlocked += 1
@@ -258,8 +258,8 @@ class AbstractEntityManageDialog(QDialog):
 			"Really delete %s '%s'?" % (
 				entity.getEntityType().lower(),
 				entity.getName()),
-			QMessageBox.Yes | QMessageBox.No)
-		if ret & QMessageBox.Yes == 0:
+			QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+		if ret & QMessageBox.StandardButton.Yes == 0:
 			return
 		entity.delete()
 		self.updateData()

@@ -55,8 +55,8 @@ class PartsToOrderDialog(QDialog):
 			self.orderTable.setColumnCount(1)
 			self.orderTable.setColumnWidth(0, 400)
 			item = QTableWidgetItem("No items to purchase found.",
-						QTableWidgetItem.Type)
-			item.setData(Qt.UserRole, None)
+						QTableWidgetItem.ItemType.Type)
+			item.setData(Qt.ItemDataRole.UserRole, None)
 			self.orderTable.setItem(0, 0, item)
 			return
 
@@ -72,8 +72,8 @@ class PartsToOrderDialog(QDialog):
 		# Populate the table
 		for i, stockItem in enumerate(stockItems):
 			def mkitem(text):
-				item = QTableWidgetItem(text, QTableWidgetItem.Type)
-				item.setData(Qt.UserRole, stockItem.getId())
+				item = QTableWidgetItem(text, QTableWidgetItem.ItemType.Type)
+				item.setData(Qt.ItemDataRole.UserRole, stockItem.getId())
 				return item
 
 			self.orderTable.setRowHeight(i, 50)
@@ -105,12 +105,12 @@ class PartsToOrderDialog(QDialog):
 	def __tabItemClicked(self, item):
 		if not item:
 			return
-		itemData = item.data(Qt.UserRole)
+		itemData = item.data(Qt.ItemDataRole.UserRole)
 		if itemData is None:
 			return
 
 		mouseButtons = QApplication.mouseButtons()
-		if mouseButtons & Qt.RightButton:
+		if mouseButtons & Qt.MouseButton.RightButton:
 			if self.orderTable.currentColumn() == 1:
 				stockItem = self.db.getStockItem(itemData)
 				menu = QMenu()
@@ -129,4 +129,4 @@ class PartsToOrderDialog(QDialog):
 							copyStrToClipboard(code))
 					count += 1
 				if count:
-					menu.exec_(QCursor.pos())
+					menu.exec(QCursor.pos())

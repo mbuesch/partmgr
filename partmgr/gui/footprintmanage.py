@@ -33,10 +33,10 @@ class FootprintEditWidget(QWidget):
 		self.layout().setContentsMargins(QMargins())
 
 		self.imageLabel = QLabel(self)
-		self.imageLabel.setFrameShape(QFrame.Panel)
-		self.imageLabel.setFrameShadow(QFrame.Raised)
+		self.imageLabel.setFrameShape(QFrame.Shape.Panel)
+		self.imageLabel.setFrameShadow(QFrame.Shadow.Raised)
 		self.imageLabel.setMinimumSize(QSize(50, 50))
-		self.imageLabel.setAlignment(Qt.AlignCenter)
+		self.imageLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.layout().addWidget(self.imageLabel, 0, 0, 2, 1)
 
 		self.imgImportButton = QPushButton("Import image", self)
@@ -97,8 +97,8 @@ class FootprintEditWidget(QWidget):
 			"Clear image?",
 			"Clear image on footprint '%s'?" %\
 			self.currentFootprint.getName(),
-			QMessageBox.Yes | QMessageBox.No)
-		if ret & QMessageBox.Yes == 0:
+			QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+		if ret & QMessageBox.StandardButton.Yes == 0:
 			return
 		self.currentFootprint.setImage(Image())
 		self.updateData(self.currentFootprint)

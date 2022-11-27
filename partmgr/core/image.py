@@ -68,7 +68,7 @@ class Image(object):
 	def toQByteArray(self):
 		ba = QByteArray()
 		buf = QBuffer(ba)
-		buf.open(QIODevice.WriteOnly)
+		buf.open(QIODeviceBase.OpenModeFlag.WriteOnly)
 		self.toPixmap().save(buf, "PNG")
 		return ba
 
@@ -84,5 +84,5 @@ class Image(object):
 			return self
 		return Image(self.pixmap.scaled(
 				maxSize,
-				Qt.KeepAspectRatio,
-				Qt.SmoothTransformation))
+				Qt.AspectRatioMode.KeepAspectRatio,
+				Qt.TransformationMode.SmoothTransformation))

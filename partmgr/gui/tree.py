@@ -115,10 +115,10 @@ class TreeModel(QAbstractItemModel):
 
 	def flags(self, index):
 		if not index.isValid():
-			return Qt.NoItemFlags
-		return Qt.ItemIsEnabled |\
-		       Qt.ItemIsSelectable |\
-		       Qt.ItemIsEditable
+			return Qt.ItemFlag.NoItemFlags
+		return Qt.ItemFlag.ItemIsEnabled |\
+		       Qt.ItemFlag.ItemIsSelectable |\
+		       Qt.ItemFlag.ItemIsEditable
 
 	def columnCount(self, parentIndex=QModelIndex()):
 		return 1
@@ -181,34 +181,34 @@ class TreeModel(QAbstractItemModel):
 			return QModelIndex()
 		return self.entityToModelIndex(parentCat)
 
-	def data(self, index, role=Qt.DisplayRole):
+	def data(self, index, role=Qt.ItemDataRole.DisplayRole):
 		if not index.isValid():
 			return None
 		treeItem = self.modelIndexToTreeItem(index)
-		if role in (Qt.DisplayRole, Qt.EditRole):
+		if role in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole):
 			entity = treeItem.toEntity(self.db)
 			return entity.getName()
-		elif role == Qt.DecorationRole:
+		elif role == Qt.ItemDataRole.DecorationRole:
 			if treeItem.entityType == TreeItem.CATEGORY:
 				icon = self.fileIconProv.icon(
-					QFileIconProvider.Folder)
+					QFileIconProvider.IconType.Folder)
 			else:
 				icon = self.fileIconProv.icon(
-					QFileIconProvider.File)
+					QFileIconProvider.IconType.File)
 			return icon
 		return None
 
-	def setData(self, index, value, role=Qt.EditRole):
+	def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
 		if not index.isValid():
 			return False
-		if role != Qt.EditRole:
+		if role != Qt.ItemDataRole.EditRole:
 			return False
 		treeItem = self.modelIndexToTreeItem(index)
 		self.renameTreeItem(treeItem, value)
 		return QAbstractItemModel.setData(self, index, value, role)
 
-	def headerData(self, section, orientation, role=Qt.DisplayRole):
-		if role == Qt.DisplayRole:
+	def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
+		if role == Qt.ItemDataRole.DisplayRole:
 			return "Stock items"
 		return None
 
@@ -321,7 +321,7 @@ class Tree(QTreeView):
 
 		self.setModel(proxyModel)
 		self.setSortingEnabled(True)
-		self.sortByColumn(0, Qt.AscendingOrder)
+		self.sortByColumn(0, Qt.SortOrder.AscendingOrder)
 
 	def __modelDataChanged(self):
 		selected = self.model().mapToSource(self.currentIndex())
@@ -370,13 +370,13 @@ class Tree(QTreeView):
 		menu.addSeparator()
 		menu.addAction("Colla&pse all", self.collapseAll)
 		menu.addAction("E&xpand all", self.expandAll)
-		menu.exec_(event.globalPos())
+		menu.exec(event.globalPos())
 		super(Tree, self).contextMenuEvent(event)
 
 	def keyPressEvent(self, ev):
 		super(Tree, self).keyPressEvent(ev)
 
-		if ev.key() == Qt.Key_Delete:
+		if ev.key() == Qt.Key.Key_Delete:
 			index = self.model().mapToSource(self.currentIndex())
 			self.contextTreeItem = self.realModel().modelIndexToTreeItem(index)
 			if not self.contextTreeItem:
@@ -408,8 +408,8 @@ class Tree(QTreeView):
 		ret = QMessageBox.question(self,
 			"Really delete category?",
 			"Really delete category '%s'?" % category.getName(),
-			QMessageBox.Yes | QMessageBox.No)
-		if ret & QMessageBox.Yes == 0:
+			QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+		if ret & QMessageBox.StandardButton.Yes == 0:
 			return
 		self.realModel().delTreeItem(self.contextTreeItem)
 
@@ -455,7 +455,7 @@ class Tree(QTreeView):
 			"Really delete item?",
 			"Really delete item '%s'?" %\
 			stockItem.getName(),
-			QMessageBox.Yes | QMessageBox.No)
-		if ret & QMessageBox.Yes == 0:
+			QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+		if ret & QMessageBox.StandardButton.Yes == 0:
 			return
 		self.realModel().delTreeItem(self.contextTreeItem)

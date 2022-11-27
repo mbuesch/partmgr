@@ -62,8 +62,8 @@ class OneStorageSelectWidget(ItemSelectWidget):
 			"Delete storage?",
 			"Delete the storage '%s' / '%s'?" %\
 			(loc, qty),
-			QMessageBox.Yes | QMessageBox.No)
-		if res != QMessageBox.Yes:
+			QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+		if res != QMessageBox.StandardButton.Yes:
 			return
 
 		self.storage.delete()

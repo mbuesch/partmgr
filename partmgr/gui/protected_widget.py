@@ -29,8 +29,8 @@ class AbstractProtectedWidget(QWidget):
 		self.layout().setContentsMargins(QMargins())
 
 		self.label = QLabel(self)
-		self.label.setFrameShape(QFrame.Panel)
-		self.label.setFrameShadow(QFrame.Sunken)
+		self.label.setFrameShape(QFrame.Shape.Panel)
+		self.label.setFrameShadow(QFrame.Shadow.Sunken)
 		font = self.label.font()
 		font.setBold(True)
 		self.label.setFont(font)

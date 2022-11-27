@@ -73,8 +73,8 @@ class PriceFetchDialog(QDialog):
 	def __doFetch(self):
 		self.resultLine.clear()
 		self.statusLine.setText("Preparing to fetch prices...")
-		QApplication.processEvents(QEventLoop.AllEvents |
-					   QEventLoop.ExcludeUserInputEvents,
+		QApplication.processEvents(QEventLoop.ProcessEventsFlag.AllEvents |
+					   QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents,
 					   250)
 
 		# Filter the table and build a dict of lists.
@@ -82,7 +82,7 @@ class PriceFetchDialog(QDialog):
 		for tableRow in range(self.table.rowCount()):
 			tableItem = self.table.item(tableRow, 0)
 
-			origin = self.db.getOrigin(tableItem.data(Qt.UserRole))
+			origin = self.db.getOrigin(tableItem.data(Qt.ItemDataRole.UserRole))
 			if not origin:
 				continue
 			orderCode = origin.getOrderCode()
@@ -99,7 +99,7 @@ class PriceFetchDialog(QDialog):
 				(tableItem, orderCode))
 
 		def relax(*args):
-			QApplication.processEvents(QEventLoop.AllEvents, 250)
+			QApplication.processEvents(QEventLoop.ProcessEventsFlag.AllEvents, 250)
 
 		# Fetch the prices.
 		for supplierName in sorted(toFetch):
@@ -131,7 +131,7 @@ class PriceFetchDialog(QDialog):
 							     preCallback=preCallback,
 							     postCallback=postCallback):
 				tableItem, orderCode = toFetch[supplierName][count]
-				origin = self.db.getOrigin(tableItem.data(Qt.UserRole))
+				origin = self.db.getOrigin(tableItem.data(Qt.ItemDataRole.UserRole))
 				self.__setPriceResult(supplierName, tableItem, orderCode,
 						      origin, priceResult)
 				relax()
@@ -192,13 +192,13 @@ class PriceFetchDialog(QDialog):
 		self.__stopRequested = True
 		self.stopButton.hide()
 		self.statusLine.setText("Stopping...")
-		QApplication.processEvents(QEventLoop.AllEvents, 250)
+		QApplication.processEvents(QEventLoop.ProcessEventsFlag.AllEvents, 250)
 
 	def __tabItem(self, text, origin):
-		item = QTableWidgetItem(text, QTableWidgetItem.UserType)
-		item.setFlags(Qt.ItemIsSelectable |\
-			      Qt.ItemIsEnabled)
-		item.setData(Qt.UserRole, origin.getId())
+		item = QTableWidgetItem(text, QTableWidgetItem.ItemType.UserType)
+		item.setFlags(Qt.ItemFlag.ItemIsSelectable |\
+			      Qt.ItemFlag.ItemIsEnabled)
+		item.setData(Qt.ItemDataRole.UserRole, origin.getId())
 		return item
 
 	def __rebuildTable(self):
@@ -251,9 +251,9 @@ class PriceFetchDialog(QDialog):
 			return
 
 		mouseButtons = QApplication.mouseButtons()
-		if mouseButtons & Qt.RightButton:
+		if mouseButtons & Qt.MouseButton.RightButton:
 			menu = QMenu()
 			menu.addAction("Copy",
 				       lambda text = item.text():
 						copyStrToClipboard(text))
-			menu.exec_(QCursor.pos())
+			menu.exec(QCursor.pos())

@@ -34,7 +34,7 @@ def main(argv):
 		if not mainwnd.loadDatabaseFile(argv[1]):
 			return 1
 	mainwnd.show()
-	return app.exec_()
+	return app.exec()
 
 if __name__ == "__main__":
 	sys.exit(main(sys.argv))

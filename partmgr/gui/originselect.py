@@ -138,8 +138,8 @@ class OneOriginSelectWidget(ItemSelectWidget):
 			"Delete origin?",
 			"Delete the origin '%s' / '%s'?" %\
 			(supplier, orderCode),
-			QMessageBox.Yes | QMessageBox.No)
-		if res != QMessageBox.Yes:
+			QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+		if res != QMessageBox.StandardButton.Yes:
 			return
 
 		self.origin.delete()

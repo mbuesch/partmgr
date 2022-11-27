@@ -3,8 +3,9 @@ __pycache__/
 *.pyo
 *$py.class
 
-build/
-dist/
+/build/
+/dist/
+/venv*/
 MANIFEST
 
 *.swp

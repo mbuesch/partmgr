@@ -2,6 +2,8 @@ graft doc
 graft maintenance
 graft tests
 include COPYING
+include README.html
+include README.rst
 include example.pmg
 include partmgr-win.bat
-include win-standalone-build.bat
+include requirements.txt

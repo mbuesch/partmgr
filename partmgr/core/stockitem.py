@@ -21,10 +21,56 @@
 
 from partmgr.core.entity import *
 from partmgr.core.util import *
+from partmgr.core.xmlfactory import XmlFactory
+
+
+class StockItem_XmlFactory(XmlFactory):
+	def __init__(self, **kwargs):
+		self.entity = None
+		super().__init__(**kwargs)
+
+	def parser_open(self, tag=None, parentFactory=None):
+		super().parser_open(tag, parentFactory)
+		assert tag is not None and tag.name == "entity"
+		assert tag.getAttr("entityType") == "stockitem"
+		assert isinstance(self.entity, StockItem)
+
+		# Parse the StockItem specific <entity> tag attributes.
+		stockItem = self.entity
+		stockItem.part = tag.getAttrInt("part")
+		stockItem.category = tag.getAttrInt("category")
+		stockItem.footprint = tag.getAttrInt("footprint")
+		stockItem.minQuantity = tag.getAttrInt("minQuantity")
+		stockItem.targetQuantity = tag.getAttrInt("targetQuantity")
+		stockItem.quantityUnits = tag.getAttrInt("quantityUnits")
+
+	def parser_endTag(self, tag):
+		if tag.name == "entity":
+			# The whole stock item has been parsed. We are done.
+			self.parser_finish()
+			return
+		super().parser_endTag(tag)
+
+	def composer_getTags(self):
+		stockItem = self.entity
+		tags = Entity_XmlFactory(entity=stockItem).composer_getTags()
+		assert len(tags) == 1
+
+		tags[0].attrs.update({
+			"part" : str(stockItem.part),
+			"category" : str(stockItem.category),
+			"footprint" : str(stockItem.footprint),
+			"minQuantity" : str(stockItem.minQuantity),
+			"targetQuantity" : str(stockItem.targetQuantity),
+			"quantityUnits" : str(stockItem.quantityUnits),
+		})
+		return tags
 
 
 class StockItem(Entity):
 	"Stock item descriptor."
+
+	XmlFactory = StockItem_XmlFactory
 
 	# Units (this is database format ABI)
 	UNIT_PC		= 0	# Pieces

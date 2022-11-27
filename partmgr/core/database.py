@@ -1113,6 +1113,44 @@ class Database:
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	@databaseCache.cache(databaseCache.STOCKITEM)
+	def getStockItemsByPart(self, part):
+		if not self.isOpen():
+			return []
+
+		partId = Entity.toId(part)
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT id, name, description, flags, "
+				  "createTimeStamp, "
+				  "modifyTimeStamp, "
+				  "part, category, footprint, "
+				  "minQuantity, targetQuantity, "
+				  "quantityUnits "
+				  "FROM stock "
+				  "WHERE part=? "
+				  "ORDER BY id;",
+				  (partId,))
+			data = c.fetchall()
+			if not data:
+				return []
+			return [ StockItem(name = fromBase64(d[1]),
+					   description = fromBase64(d[2]),
+					   flags = int(d[3]),
+					   createTimeStamp = int(d[4]),
+					   modifyTimeStamp = int(d[5]),
+					   part = int(d[6]),
+					   category = int(d[7]),
+					   footprint = int(d[8]),
+					   minQuantity = int(d[9]),
+					   targetQuantity = int(d[10]),
+					   quantityUnits = int(d[11]),
+					   id = int(d[0]),
+					   db = self)
+				for d in data ]
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	def getStockItemsToPurchase(self):
 		if not self.isOpen():
 			return []

@@ -24,6 +24,10 @@ from partmgr.gui.util import *
 from partmgr.core.category import *
 from partmgr.core.stockitem import *
 from partmgr.core.part import *
+from partmgr.core.entity import Entity_XmlFactory
+from partmgr.core.xmlfactory import XmlFactory
+
+import sys
 
 
 class TreeItem:
@@ -113,12 +117,20 @@ class TreeModel(QAbstractItemModel):
 		treeItem.modelIndex = modelIndex
 		return treeItem
 
+	def supportedDropActions(self):
+		return Qt.DropAction.CopyAction | Qt.DropAction.MoveAction
+
 	def flags(self, index):
 		if not index.isValid():
 			return Qt.ItemFlag.NoItemFlags
-		return Qt.ItemFlag.ItemIsEnabled |\
-		       Qt.ItemFlag.ItemIsSelectable |\
-		       Qt.ItemFlag.ItemIsEditable
+		treeItem = self.modelIndexToTreeItem(index)
+		flags = (Qt.ItemFlag.ItemIsEnabled |
+			 Qt.ItemFlag.ItemIsSelectable |
+			 Qt.ItemFlag.ItemIsEditable |
+			 Qt.ItemFlag.ItemIsDragEnabled)
+		if treeItem.entityType == TreeItem.CATEGORY:
+			flags |= Qt.ItemFlag.ItemIsDropEnabled
+		return flags
 
 	def columnCount(self, parentIndex=QModelIndex()):
 		return 1
@@ -211,6 +223,276 @@ class TreeModel(QAbstractItemModel):
 		if role == Qt.ItemDataRole.DisplayRole:
 			return "Stock items"
 		return None
+
+	def mimeData(self, indexes):
+		if not indexes:
+			return None
+		mimeData = QMimeData()
+		for index in indexes:
+			if not index.isValid():
+				continue
+			treeItem = self.modelIndexToTreeItem(index)
+			entity = treeItem.toEntity(self.db)
+			if not entity:
+				continue
+			# Serialize the entity (including all of its
+			# children, if it is a category) to XML.
+			if treeItem.entityType == TreeItem.CATEGORY:
+				dataBytes = Category_XmlFactory(
+					entity=entity).compose()
+				mimeData.setData("application/x-partmgr-xml-category",
+						 dataBytes)
+			elif treeItem.entityType == TreeItem.STOCKITEM:
+				dataBytes = StockItem_XmlFactory(
+					entity=entity).compose()
+				mimeData.setData("application/x-partmgr-xml-stockitem",
+						 dataBytes)
+			else:
+				assert False
+		return mimeData
+
+	def dropMimeData(self, mimeData, action, row, column, parentIndex):
+		if self.__dropMimeData(mimeData, action, row, column, parentIndex):
+			return True
+		return False
+
+	def mimeTypes(self):
+		return [
+			"application/x-partmgr-xml-category",
+			"application/x-partmgr-xml-stockitem",
+		]
+
+	def canDropMimeData(self, mimeData, action, row, column, parentIndex):
+		if not parentIndex.isValid():
+			return False
+		if action not in (Qt.DropAction.MoveAction,
+				  Qt.DropAction.CopyAction):
+			return False
+		parentTreeItem = self.modelIndexToTreeItem(parentIndex)
+		if parentTreeItem.entityType != TreeItem.CATEGORY:
+			return False
+		if mimeData.hasFormat("application/x-partmgr-xml-stockitem"):
+			return True
+		if mimeData.hasFormat("application/x-partmgr-xml-category"):
+			if action == Qt.DropAction.MoveAction:
+				# Reject moving a category into itself or
+				# into one of its own child categories.
+				draggedEntity = self.__parseDraggedEntity(mimeData)
+				if draggedEntity is None or\
+				   not draggedEntity.hasValidId():
+					return False
+				cat = parentTreeItem.toEntity(self.db)
+				while cat:
+					if cat.id == draggedEntity.id:
+						return False
+					cat = cat.getParent()
+			return True
+		return False
+
+	def __parseDraggedEntity(self, mimeData):
+		"""Parse the dragged entity from the drag&drop MIME data.
+		Returns the (detached) entity, or None on error.
+		"""
+		if mimeData.hasFormat("application/x-partmgr-xml-category"):
+			mimeType = "application/x-partmgr-xml-category"
+			entityClass = Category
+		elif mimeData.hasFormat("application/x-partmgr-xml-stockitem"):
+			mimeType = "application/x-partmgr-xml-stockitem"
+			entityClass = StockItem
+		else:
+			return None
+		try:
+			factory = Entity_XmlFactory()
+			# QMimeData.data() -> QByteArray; .data() -> bytes
+			xmlBytes = mimeData.data(mimeType).data()
+			if not factory.parse(xmlBytes):
+				return None
+		except XmlFactory.Error as e:
+			print("Failed to parse drag&drop XML data: %s" % str(e),
+			      file=sys.stderr)
+			return None
+		entity = factory.entity
+		if not isinstance(entity, entityClass):
+			return None
+		return entity
+
+	def __dropMimeData(self, mimeData, action, row, column, parentIndex):
+		if action not in (Qt.DropAction.MoveAction,
+				  Qt.DropAction.CopyAction):
+			return False
+		if not parentIndex.isValid():
+			return False
+		parentTreeItem = self.modelIndexToTreeItem(parentIndex)
+		if not parentTreeItem or\
+		   parentTreeItem.entityType != TreeItem.CATEGORY:
+			return False
+		targetCategory = parentTreeItem.toEntity(self.db)
+		if not targetCategory:
+			return False
+
+		# Deserialize the dragged entity from the XML MIME data.
+		draggedEntity = self.__parseDraggedEntity(mimeData)
+		if draggedEntity is None or not draggedEntity.hasValidId():
+			return False
+
+		if action == Qt.DropAction.MoveAction:
+			return self.__dropMove(draggedEntity, targetCategory)
+		# Qt.DropAction.CopyAction
+		return self.__dropCopy(draggedEntity, parentTreeItem)
+
+	def __dropMove(self, draggedEntity, targetCategory):
+		"""Move an entity to another category.
+		'draggedEntity' is the (detached) entity parsed from the
+		drag&drop XML data. The actual database entity is fetched
+		by its ID.
+		"""
+		# Get the actual entity from the database.
+		if isinstance(draggedEntity, Category):
+			entity = self.db.getCategory(draggedEntity.id)
+		elif isinstance(draggedEntity, StockItem):
+			entity = self.db.getStockItem(draggedEntity.id)
+		else:
+			assert False
+		if not entity:
+			return False
+
+		if isinstance(entity, Category):
+			# Do not move a category into itself or into
+			# one of its own child categories.
+			cat = targetCategory
+			while cat:
+				if cat == entity:
+					return False
+				cat = cat.getParent()
+
+		oldParentCat = entity.getParent()
+		if oldParentCat == targetCategory:
+			# Already there. Nothing to do.
+			return False
+
+		# Move the model row and update the database.
+		sourceParentIndex = self.entityToModelIndex(oldParentCat)
+		sourceRow = self.entityToRowNumber(entity)
+		destParentIndex = self.entityToModelIndex(targetCategory)
+		destRow = self.rowCount(destParentIndex)
+		if not self.beginMoveRows(sourceParentIndex,
+					  sourceRow, sourceRow,
+					  destParentIndex,
+					  destRow):
+			return False
+		if isinstance(entity, Category):
+			entity.setParent(targetCategory)
+		else:
+			self.__movePartWithStockItem(entity, targetCategory)
+			entity.setCategory(targetCategory)
+		self.endMoveRows()
+		return True
+
+	def __movePartWithStockItem(self, stockItem, targetCategory):
+		"""A StockItem is being moved to targetCategory. Take the
+		Part it refers to along, so it stays reachable from the
+		stock item's new category:
+		If an identical part already exists in targetCategory, it is
+		reused. Otherwise, if the part is only used by this one
+		stock item, the part is moved to targetCategory, too. If the
+		part is shared with other stock items, it is duplicated
+		instead, so that the other stock items keep referring to the
+		original, unmodified part.
+		"""
+		part = stockItem.getPart()
+		if not part:
+			return
+		existingPart = self.__findMatchingPart(part, targetCategory)
+		if existingPart:
+			stockItem.setPart(existingPart)
+		elif len(self.db.getStockItemsByPart(part)) <= 1:
+			part.setCategory(targetCategory)
+		else:
+			stockItem.setPart(self.__duplicatePart(part, targetCategory))
+
+	def __findMatchingPart(self, part, targetCategory):
+		"""Find a Part in targetCategory that is identical to 'part'
+		(same name, description and flags). Returns the matching
+		Part, or None if there is no such part.
+		"""
+		for candidate in self.db.getPartsByCategory(targetCategory):
+			if candidate.id == part.id:
+				continue
+			if (candidate.name.strip() == part.name.strip() and
+			    candidate.description.strip() == part.description.strip() and
+			    candidate.flags == part.flags):
+				return candidate
+		return None
+
+	def __duplicatePart(self, srcPart, targetCategory):
+		"""Duplicate a Part into targetCategory. If an identical part
+		already exists in targetCategory, that existing part is
+		reused instead of creating a duplicate. Returns the new or
+		reused Part.
+		"""
+		existingPart = self.__findMatchingPart(srcPart, targetCategory)
+		if existingPart:
+			return existingPart
+		newPart = Part(
+			name=srcPart.name,
+			description=srcPart.description,
+			flags=srcPart.flags,
+			category=targetCategory,
+		)
+		self.db.modifyPart(newPart)
+		return newPart
+
+	def __dropCopy(self, draggedEntity, parentTreeItem):
+		"""Copy an entity into another category.
+		The entity (including all of its content, if it is a
+		category) is duplicated with new database IDs.
+		"""
+		if isinstance(draggedEntity, Category):
+			self.__copyCategory(draggedEntity, parentTreeItem)
+		elif isinstance(draggedEntity, StockItem):
+			self.__copyStockItem(draggedEntity, parentTreeItem)
+		else:
+			assert False
+		return True
+
+	def __copyCategory(self, srcCategory, parentTreeItem):
+		"""Recursively copy a category and all of its content.
+		'srcCategory' is the (detached) category parsed from the
+		drag&drop XML data.
+		"""
+		newCategory = Category(
+			name=srcCategory.name,
+			description=srcCategory.description,
+			flags=srcCategory.flags,
+		)
+		newIndex = self.addCategory(parentTreeItem, newCategory)
+		newTreeItem = self.modelIndexToTreeItem(newIndex)
+		for childCategory in getattr(srcCategory, "childCategories", ()):
+			self.__copyCategory(childCategory, newTreeItem)
+		for childStockItem in getattr(srcCategory, "childStockItems", ()):
+			self.__copyStockItem(childStockItem, newTreeItem)
+
+	def __copyStockItem(self, srcStockItem, parentTreeItem):
+		"""Copy a stock item.
+		The new stock item refers to a copy of the part (if any),
+		and to the same footprint, but it has no storages or origins.
+		'srcStockItem' is the (detached) stock item parsed from the
+		drag&drop XML data.
+		"""
+		targetCategory = parentTreeItem.toEntity(self.db)
+		srcPart = self.db.getPart(srcStockItem.part)
+		newPart = self.__duplicatePart(srcPart, targetCategory) if srcPart else None
+		newStockItem = StockItem(
+			name=srcStockItem.name,
+			description=srcStockItem.description,
+			flags=srcStockItem.flags,
+			part=newPart,
+			footprint=srcStockItem.footprint,
+			minQuantity=srcStockItem.minQuantity,
+			targetQuantity=srcStockItem.targetQuantity,
+			quantityUnits=srcStockItem.quantityUnits,
+		)
+		self.addStockItem(parentTreeItem, newStockItem)
 
 	# Add a new StockItem to the database
 	def addStockItem(self, parentTreeItem, stockItem):
@@ -312,6 +594,13 @@ class Tree(QTreeView):
 	def __init__(self, db, parent=None):
 		QTreeView.__init__(self, parent)
 		self.db = db
+
+		self.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
+		self.setDefaultDropAction(Qt.DropAction.MoveAction)
+		self.setAcceptDrops(True)
+		self.setDragEnabled(True)
+		self.setDropIndicatorShown(True)
+		self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
 
 		model = TreeModel(db, self)
 		proxyModel = QSortFilterProxyModel(self)

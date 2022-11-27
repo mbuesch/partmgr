@@ -21,10 +21,100 @@
 
 from partmgr.core.timestamp import *
 from partmgr.core.util import *
+from partmgr.core.xmlfactory import XmlFactory
 
+class Entity_XmlFactory(XmlFactory):
+	def __init__(self, **kwargs):
+		self.entity = None
+		super().__init__(**kwargs)
+
+	@staticmethod
+	def createEntityFromTag(tag):
+		"""Create a concrete entity object from an <entity> tag.
+		Only the common Entity attributes are set here.
+		The concrete entity factory parses the entity specific
+		attributes in its parser_open().
+		"""
+		from partmgr.core.category import Category
+		from partmgr.core.stockitem import StockItem
+
+		entityType = tag.getAttr("entityType")
+		type2class = {
+			"category"	: Category,
+			"stockitem"	: StockItem,
+		}
+		try:
+			entityClass = type2class[entityType]
+		except KeyError:
+			raise XmlFactory.Error("Unknown <entity> entityType "
+					       "'%s'." % entityType)
+		return entityClass(
+			id=tag.getAttrInt("id"),
+			name=fromBase64(tag.getAttr("name", "")),
+			description=fromBase64(tag.getAttr("description", "")),
+			flags=tag.getAttrInt("flags"),
+			createTimeStamp=tag.getAttrInt("createTimeStamp"),
+			modifyTimeStamp=tag.getAttrInt("modifyTimeStamp"),
+		)
+
+	def parser_open(self, tag=None, parentFactory=None):
+		super().parser_open(tag, parentFactory)
+
+	def parser_beginTag(self, tag):
+		if tag.name == "entity":
+			entity = self.createEntityFromTag(tag)
+			self.entityParsed(entity)
+			self.parser_switchTo(entity.XmlFactory(entity=entity))
+			return
+		super().parser_beginTag(tag)
+
+	def entityParsed(self, entity):
+		"""Called after a new entity object has been created
+		from an <entity> tag.
+		"""
+		self.entity = entity
+
+	def composer_getTags(self):
+		entity = self.entity
+		return [ self.Tag(
+			name="entity",
+			attrs={
+				"id" : str(entity.id),
+				"name" : toBase64(entity.name),
+				"description" : toBase64(entity.description),
+				"flags" : str(entity.flags),
+				"createTimeStamp" : str(entity.createTimeStamp.getStampInt()),
+				"modifyTimeStamp" : str(entity.modifyTimeStamp.getStampInt()),
+				"entityType" : str(entity.entityType).lower(),
+			},
+			emitEmptyAttrs=True,
+		) ]
+
+class EntityList_XmlFactory(Entity_XmlFactory):
+	def __init__(self, **kwargs):
+		self.entities = []
+		self.__containerTag = None
+		super().__init__(**kwargs)
+
+	def parser_open(self, tag=None, parentFactory=None):
+		assert tag is not None
+		self.__containerTag = tag.name
+		super().parser_open(tag, parentFactory)
+
+	def entityParsed(self, entity):
+		self.entities.append(entity)
+
+	def parser_endTag(self, tag):
+		if tag.name == self.__containerTag:
+			# The container tag is closed. We are done.
+			self.parser_finish()
+			return
+		super().parser_endTag(tag)
 
 class Entity:
 	"Abstract entity base class."
+
+	XmlFactory = Entity_XmlFactory
 
 	FLG_OFFSET = 8	# Offset for user-flags
 

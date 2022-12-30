@@ -43,6 +43,7 @@ setup(
 			    "partmgr/gui", ],
 	scripts		= [ "partmgr-gui", ],
 	keywords	= [ ],
+	install_requires = [ "PySide6", ],
 	classifiers	= [
 	],
 	long_description=readmeText,

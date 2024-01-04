@@ -419,7 +419,7 @@ class Tree(QTreeView):
 		newName, ok = QInputDialog.getText(
 				self, "Rename category",
 				"Rename category",
-				QLineEdit.Normal,
+				QLineEdit.EchoMode.Normal,
 				category.getName())
 		if not ok:
 			return
@@ -431,7 +431,7 @@ class Tree(QTreeView):
 		newName, ok = QInputDialog.getText(
 				self, "Rename item",
 				"Rename item",
-				QLineEdit.Normal,
+				QLineEdit.EchoMode.Normal,
 				stockItem.getName())
 		if not ok:
 			return

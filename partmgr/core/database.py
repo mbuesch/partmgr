@@ -2,7 +2,7 @@
 #
 # PartMgr - Database
 #
-# Copyright 2014-2022 Michael Buesch <m@bues.ch>
+# Copyright 2014-2024 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ class Database:
 	"Part database interface."
 
 	# Database version number
-	DB_VERSION	= 0
+	DB_VERSION	= 1
 
 	# User editable parameters
 	USER_PARAMS = {
@@ -116,10 +116,12 @@ class Database:
 				ver = self.getGlobalParameter(
 					"partmgr_db_version")
 				ver = ver.getDataInt() if ver else None
-				if ver is None or ver != self.DB_VERSION:
+				if ver is None or ver < 0 or ver > self.DB_VERSION:
 					self.filename = None
 					raise PartMgrError("Invalid database "
 						    "version")
+				if ver == 0:
+					self.__upgrade_0to1() # Upgrade DB version to 1.
 			self.__setUserParameterDefaults()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.filename = None
@@ -200,13 +202,15 @@ class Database:
 
 	def __initTables(self):
 		entityColumns = "id INTEGER PRIMARY KEY AUTOINCREMENT, "\
-				"name TEXT, description TEXT, "\
+				"name TEXT, "\
+				"description TEXT, "\
 				"flags INTEGER, "\
 				"createTimeStamp INTEGER, "\
 				"modifyTimeStamp INTEGER"
 		tables = (
 			"parameters(" + entityColumns + ", "
-				   "parentType INTEGER, parent INTEGER, "
+				   "parentType INTEGER, "
+				   "parent INTEGER, "
 				   "data TEXT)",
 			"parts(" + entityColumns + ", "
 			      "category INTEGER)",
@@ -218,22 +222,34 @@ class Database:
 			"footprints(" + entityColumns + ", "
 				   "image TEXT)",
 			"stock(" + entityColumns + ", "
-			      "part INTEGER, category INTEGER, "
+			      "part INTEGER, "
+			      "category INTEGER, "
 			      "footprint INTEGER, "
 			      "minQuantity INTEGER, "
 			      "targetQuantity INTEGER, "
 			      "quantityUnits INTEGER)",
 			"origins(" + entityColumns + ", "
-				"stockItem INTEGER, supplier INTEGER, "
+				"stockItem INTEGER, "
+				"supplier INTEGER, "
 				"orderCode TEXT, "
-				"price FLOAT, priceTimeStamp INTEGER)",
+				"price FLOAT, "
+				"priceTimeStamp INTEGER, "
+				"priceFact FLOAT DEFAULT 1.0)",
 			"storages(" + entityColumns + ", "
-				 "stockItem INTEGER, location INTEGER, "
+				 "stockItem INTEGER, "
+				 "location INTEGER, "
 				 "quantity INTEGER)",
 		)
 		c = self.db.cursor()
 		for table in tables:
 			c.execute("CREATE TABLE IF NOT EXISTS %s;" % table)
+		self.__commit()
+
+	def __upgrade_0to1(self):
+		print("Updating database version 0 to version 1.")
+		c = self.db.cursor()
+		c.execute("ALTER TABLE origins ADD COLUMN priceFact FLOAT DEFAULT 1.0;")
+		self.getGlobalParameter("partmgr_db_version").setData(1)
 		self.__commit()
 
 	def __sqlIsEmpty(self):
@@ -1290,11 +1306,18 @@ class Database:
 		id = Entity.toId(origin)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT name, description, flags, "
+			c.execute("SELECT "
+				  "name, "
+				  "description, "
+				  "flags, "
 				  "createTimeStamp, "
 				  "modifyTimeStamp, "
-				  "stockItem, supplier, orderCode, "
-				  "price, priceTimeStamp "
+				  "stockItem, "
+				  "supplier, "
+				  "orderCode, "
+				  "price, "
+				  "priceTimeStamp, "
+				  "priceFact "
 				  "FROM origins "
 				  "WHERE id=?;",
 				  (int(id),))
@@ -1311,6 +1334,7 @@ class Database:
 				      orderCode = fromBase64(data[7]),
 				      price = float(data[8]),
 				      priceTimeStamp = int(data[9]),
+				      priceFact = float(data[10]),
 				      id = id,
 				      db = self)
 		except (sql.Error, ValueError, TypeError) as e:
@@ -1323,11 +1347,18 @@ class Database:
 		stockItemId = Entity.toId(stockItem)
 		try:
 			c = self.db.cursor()
-			c.execute("SELECT id, name, description, flags, "
+			c.execute("SELECT "
+				  "id, "
+				  "name, "
+				  "description, "
+				  "flags, "
 				  "createTimeStamp, "
 				  "modifyTimeStamp, "
-				  "supplier, orderCode, "
-				  "price, priceTimeStamp "
+				  "supplier, "
+				  "orderCode, "
+				  "price, "
+				  "priceTimeStamp, "
+				  "priceFact "
 				  "FROM origins "
 				  "WHERE stockItem=?;",
 				  (int(stockItemId),))
@@ -1344,6 +1375,7 @@ class Database:
 					orderCode = fromBase64(d[7]),
 					price = float(d[8]),
 					priceTimeStamp = int(d[9]),
+					priceFact = float(d[10]),
 					id = int(d[0]),
 					db = self)
 				 for d in data ]
@@ -1359,12 +1391,18 @@ class Database:
 			c = self.db.cursor()
 			if origin.inDatabase(self):
 				c.execute("UPDATE origins "
-					  "SET name=?, description=?, flags=?, "
+					  "SET "
+					  "name=?, "
+					  "description=?, "
+					  "flags=?, "
 					  "createTimeStamp=?, "
 					  "modifyTimeStamp=?, "
-					  "stockItem=?, supplier=?, "
+					  "stockItem=?, "
+					  "supplier=?, "
 					  "orderCode=?, "
-					  "price=?, priceTimeStamp=? "
+					  "price=?, "
+					  "priceTimeStamp=?, "
+					  "priceFact=? "
 					  "WHERE id=?;",
 					  (toBase64(origin.name),
 					   toBase64(origin.description),
@@ -1376,16 +1414,23 @@ class Database:
 					   toBase64(origin.orderCode),
 					   float(origin.price),
 					   int(origin.getPriceTimeStampInt()),
+					   float(origin.priceFact),
 					   int(origin.id)))
 			else:
 				c.execute("INSERT INTO "
-					  "origins(name, description, flags, "
+					  "origins("
+					  "name, "
+					  "description, "
+					  "flags, "
 					  "createTimeStamp, "
 					  "modifyTimeStamp, "
-					  "stockItem, supplier, "
+					  "stockItem, "
+					  "supplier, "
 					  "orderCode, "
-					  "price, priceTimeStamp) "
-					  "VALUES(?,?,?,?,?,?,?,?,?,?);",
+					  "price, "
+					  "priceTimeStamp, "
+					  "priceFact) "
+					  "VALUES(?,?,?,?,?,?,?,?,?,?,?);",
 					  (toBase64(origin.name),
 					   toBase64(origin.description),
 					   int(origin.flags),
@@ -1395,7 +1440,8 @@ class Database:
 					   int(origin.supplier),
 					   toBase64(origin.orderCode),
 					   float(origin.price),
-					   int(origin.getPriceTimeStampInt())))
+					   int(origin.getPriceTimeStampInt()),
+					   float(origin.priceFact)))
 				origin.id = c.lastrowid
 				origin.db = self
 			self.__commit()

@@ -2,7 +2,7 @@
 #
 # PartMgr - Origin descriptor
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2024 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,10 +29,17 @@ class Origin(Entity):
 
 	NO_PRICE = -0.1
 
-	def __init__(self, name,
-		     stockItem=None, supplier=None, orderCode="",
-		     price=NO_PRICE, priceTimeStamp=None,
-		     **kwds):
+	def __init__(
+		self,
+		name,
+		stockItem=None,
+		supplier=None,
+		orderCode="",
+		price=NO_PRICE,
+		priceTimeStamp=None,
+		priceFact=1.0,
+		**kwds,
+	):
 		Entity.__init__(self,
 				name = name,
 				entityType = "Origin",
@@ -42,6 +49,7 @@ class Origin(Entity):
 		self.orderCode = orderCode
 		self.price = float(price)
 		self.priceStamp = Timestamp(priceTimeStamp)
+		self.priceFact = float(priceFact)
 
 	def syncDatabase(self):
 		if self.db:
@@ -81,6 +89,16 @@ class Origin(Entity):
 		if updateTimeStamp:
 			self.setPriceTimeStampNow()
 		self.syncDatabase()
+
+	def getPriceFact(self):
+		return self.priceFact
+
+	def setPriceFact(self, fact):
+		self.priceFact = fact
+		self.syncDatabase()
+
+	def getEffectivePrice(self):
+		return self.getPrice() * self.getPriceFact()
 
 	def setPriceTimeStampNow(self):
 		self.priceStamp.setNow()

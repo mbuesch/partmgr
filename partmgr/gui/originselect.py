@@ -2,7 +2,7 @@
 #
 # PartMgr GUI - Origin widgets
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2024 Michael Buesch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,9 +51,18 @@ class PriceSpinBox(ProtectedDoubleSpinBox):
 			return Origin.NO_PRICE
 		return ProtectedDoubleSpinBox.valueFromText(self, text)
 
+class PriceFactorSpinBox(ProtectedDoubleSpinBox):
+	def __init__(self, parent=None):
+		ProtectedDoubleSpinBox.__init__(self, parent)
+		self.setMinimum(0.0)
+		self.setMaximum(16777215.0)
+		self.setDecimals(9)
+		self.setSingleStep(0.01)
+
 class OriginWidget(QWidget):
 	codeChanged = Signal(str)
 	priceChanged = Signal(float)
+	priceFactChanged = Signal(float)
 
 	def __init__(self, origin, parent=None):
 		QWidget.__init__(self, parent)
@@ -70,11 +79,19 @@ class OriginWidget(QWidget):
 		self.price.setValue(Origin.NO_PRICE if price is None else price)
 		priceLayout.addWidget(self.price, 0, 1)
 
+		label = QLabel("Factor:", self)
+		priceLayout.addWidget(label, 1, 0)
+
+		fact = origin.getPriceFact()
+		self.priceFact = PriceFactorSpinBox(self)
+		self.priceFact.setValue(fact)
+		priceLayout.addWidget(self.priceFact, 1, 1)
+
 		self.priceStamp = QLabel(self)
 		font = self.priceStamp.font()
 		font.setPointSize(8)
 		self.priceStamp.setFont(font)
-		priceLayout.addWidget(self.priceStamp, 1, 0, 1, 2)
+		priceLayout.addWidget(self.priceStamp, 2, 0, 1, 2)
 
 		self.layout().addLayout(priceLayout)
 
@@ -88,6 +105,7 @@ class OriginWidget(QWidget):
 
 		self.code.textChanged.connect(self.codeChanged)
 		self.price.valueChanged.connect(self.priceChanged)
+		self.priceFact.valueChanged.connect(self.priceFactChanged)
 
 		self.updatePriceStamp(origin)
 		self.setProtected()
@@ -95,6 +113,7 @@ class OriginWidget(QWidget):
 	def setProtected(self, prot=True):
 		self.code.setProtected(prot)
 		self.price.setProtected(prot)
+		self.priceFact.setProtected(prot)
 
 	def updatePriceStamp(self, origin):
 		priceStamp = origin.getPriceTimeStamp()
@@ -105,6 +124,7 @@ class OriginWidget(QWidget):
 class OneOriginSelectWidget(ItemSelectWidget):
 	codeChanged = Signal(str)
 	priceChanged = Signal(float)
+	priceFactChanged = Signal(float)
 
 	def __init__(self, origin, parent=None):
 		self.originWidget = OriginWidget(origin)
@@ -122,6 +142,8 @@ class OneOriginSelectWidget(ItemSelectWidget):
 		self.originWidget.codeChanged.connect(self.codeChanged)
 		self.originWidget.priceChanged.connect(self.__priceChanged)
 		self.originWidget.priceChanged.connect(self.priceChanged)
+		self.originWidget.priceFactChanged.connect(self.__priceFactChanged)
+		self.originWidget.priceFactChanged.connect(self.priceFactChanged)
 
 	def setProtected(self, prot=True):
 		self.originWidget.setProtected(prot)
@@ -156,6 +178,10 @@ class OneOriginSelectWidget(ItemSelectWidget):
 		self.origin.setPrice(newPrice)
 		self.originWidget.updatePriceStamp(self.origin)
 
+	def __priceFactChanged(self, newPriceFact):
+		self.origin.setPriceFact(newPriceFact)
+		self.originWidget.updatePriceStamp(self.origin)
+
 class OriginsSelectWidget(GroupSelectWidget):
 	selectionChanged = Signal()
 	contentChanged = Signal()
@@ -178,6 +204,7 @@ class OriginsSelectWidget(GroupSelectWidget):
 			widget.selectionChanged.connect(self.contentChanged)
 			widget.codeChanged.connect(self.contentChanged)
 			widget.priceChanged.connect(self.contentChanged)
+			widget.priceFactChanged.connect(self.contentChanged)
 			self.addItemSelectWidget(widget)
 		self.finishUpdate()
 

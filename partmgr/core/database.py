@@ -188,6 +188,49 @@ class Database:
 			return
 
 		c = self.db.cursor()
+
+		# Delete all unreachable items.
+		nrDeleted = 0
+		for statement in (
+			# Origins of deleted stock items.
+			"DELETE FROM origins "
+			"WHERE stockItem NOT IN (SELECT id FROM stock);",
+			# Storages of deleted stock items.
+			"DELETE FROM storages "
+			"WHERE stockItem NOT IN (SELECT id FROM stock);",
+			# Parts that are not referenced by any stock item.
+			"DELETE FROM parts "
+			"WHERE id NOT IN (SELECT part FROM stock WHERE part IS NOT NULL);",
+			# Parameters whose parent entity does not exist.
+			"DELETE FROM parameters "
+			"WHERE parentType != %d AND ( %s );" % (
+				Parameter.PTYPE_GLOBAL,
+				" OR ".join(
+					"(parentType = %d AND parent NOT IN (SELECT id FROM %s))" % (
+						parentType,
+						table,
+					)
+					for parentType, table in (
+						(Parameter.PTYPE_PART, "parts"),
+						(Parameter.PTYPE_CATEGORY, "categories"),
+						(Parameter.PTYPE_SUPPLIER, "suppliers"),
+						(Parameter.PTYPE_LOCATION, "locations"),
+						(Parameter.PTYPE_FOOTPRINT, "footprints"),
+						(Parameter.PTYPE_STOCKITEM, "stock"),
+						(Parameter.PTYPE_ORIGIN, "origins"),
+						(Parameter.PTYPE_STORAGE, "storages"),
+					)
+				),
+			),
+		):
+			c.execute(statement)
+			if c.rowcount > 0:
+				nrDeleted += c.rowcount
+		if nrDeleted:
+			print("Deleted %d unreachable database item%s." % (
+				nrDeleted, "s" if nrDeleted != 1 else ""))
+		self.__commit()
+
 		c.execute("VACUUM;")
 		self.__commit()
 

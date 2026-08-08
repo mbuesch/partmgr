@@ -80,6 +80,7 @@ class TestCaseContext:
 		return self
 
 	def __exit__(self, exc_type, exc_value, exc_tb):
+		self.db.close()
 		self.__tmp.cleanup()
 
 

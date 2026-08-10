@@ -20,9 +20,113 @@
 #
 
 from partmgr.gui.util import *
+from partmgr.core.parameter import Param_Currency
+
+
+def _currencyName(param):
+	"""Convert the global currency parameter to a short currency name.
+	"""
+	if not param:
+		return ""
+	try:
+		idx = param.getDataInt()
+	except PartMgrError:
+		return ""
+	return Param_Currency.CURRNAMES.get(idx, ("?", "?"))[0]
+
+def calculateGlobalStats(db):
+	"""Calculate global statistics for a database.
+	"""
+	stats = {}
+
+	stockItems = db.getAllStockItems()
+
+	stats["total_parts"] = db.countParts()
+	stats["total_stock_items"] = len(stockItems)
+	stats["total_categories"] = db.countCategories()
+	stats["total_suppliers"] = db.countSuppliers()
+	stats["total_locations"] = db.countLocations()
+	stats["total_footprints"] = db.countFootprints()
+
+	totalQuantity = 0
+	totalValue = 0.0
+	for stockItem in stockItems:
+		origins = stockItem.getOrigins()
+		quantity = stockItem.getGlobalQuantity()
+		totalQuantity += quantity
+		prices = [
+			origin.getEffectivePrice()
+			for origin in origins
+			if origin.hasPrice()
+		]
+		if prices:
+			totalValue += min(prices) * quantity
+
+	stats["total_locations"] = db.countLocations()
+	stats["total_quantity"] = totalQuantity
+	stats["total_value"] = round(totalValue, 2)
+	stats["items_missing_price"] = len(db.getStockItemsWithMissingPrice())
+	stats["items_to_order"] = len(db.getStockItemsToPurchase())
+	stats["currency"] = _currencyName(db.getGlobalParameter("currency"))
+
+	return stats
 
 
 class GlobalStatsDialog(QDialog):
+	"""Dialog that displays global database statistics."""
+
 	def __init__(self, db, parent=None):
 		QDialog.__init__(self, parent)
-		pass#TODO
+		self.db = db
+
+		self.setWindowTitle("Parts manager - Global statistics")
+		self.setLayout(QVBoxLayout())
+
+		self.formLayout = QFormLayout()
+		self.layout().addLayout(self.formLayout)
+
+		buttonLayout = QHBoxLayout()
+		buttonLayout.addStretch()
+
+		self.updateButton = QPushButton("&Update", self)
+		self.closeButton = QPushButton("&Close", self)
+		buttonLayout.addWidget(self.updateButton)
+		buttonLayout.addWidget(self.closeButton)
+		self.layout().addLayout(buttonLayout)
+
+		self.closeButton.released.connect(self.accept)
+		self.updateButton.released.connect(self.__update)
+
+		self.resize(400, 380)
+		self.__update()
+
+	def __update(self):
+		"""Refresh the displayed statistics."""
+		# Remove existing rows.
+		while self.formLayout.rowCount() > 0:
+			self.formLayout.removeRow(0)
+
+		stats = calculateGlobalStats(self.db)
+
+		rows = (
+			("Total parts", str(stats["total_parts"])),
+			("Total stock items", str(stats["total_stock_items"])),
+			("Total categories", str(stats["total_categories"])),
+			("Total suppliers", str(stats["total_suppliers"])),
+			("Total locations", str(stats["total_locations"])),
+			("Total footprints", str(stats["total_footprints"])),
+			("Total quantity in stock",
+			 "%d" % stats["total_quantity"]),
+			("Items missing price",
+			 "%d" % stats["items_missing_price"]),
+			("Items to order",
+			 "%d" % stats["items_to_order"]),
+			("Total inventory value",
+			 "%.2f %s" % (stats["total_value"], stats["currency"])),
+		)
+
+		for label, value in rows:
+			valueLabel = QLabel(value, self)
+			valueLabel.setTextInteractionFlags(
+				Qt.TextInteractionFlag.TextSelectableByMouse)
+			self.formLayout.addRow(label + ":", valueLabel)

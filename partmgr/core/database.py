@@ -533,6 +533,21 @@ class Database:
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	def countParts(self):
+		if not self.isOpen():
+			return 0
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT COUNT(*) "
+				  "FROM parts;")
+			data = c.fetchone()
+			if not data:
+				return 0
+			return int(data[0])
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	def modifyPart(self, part):
 		if not self.isOpen():
 			return
@@ -671,6 +686,21 @@ class Database:
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	def countCategories(self):
+		if not self.isOpen():
+			return 0
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT COUNT(*) "
+				  "FROM categories;")
+			data = c.fetchone()
+			if not data:
+				return 0
+			return int(data[0])
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	@databaseCache.clearCache(databaseCache.CATEGORY)
 	def modifyCategory(self, category):
 		if not self.isOpen():
@@ -782,6 +812,21 @@ class Database:
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	def countSuppliers(self):
+		if not self.isOpen():
+			return 0
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT COUNT(*) "
+				  "FROM suppliers;")
+			data = c.fetchone()
+			if not data:
+				return 0
+			return int(data[0])
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	def modifySupplier(self, supplier):
 		if not self.isOpen():
 			return
@@ -887,6 +932,21 @@ class Database:
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	def countLocations(self):
+		if not self.isOpen():
+			return 0
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT COUNT(*) "
+				  "FROM locations;")
+			data = c.fetchone()
+			if not data:
+				return 0
+			return int(data[0])
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	def modifyLocation(self, location):
 		if not self.isOpen():
 			return
@@ -989,6 +1049,21 @@ class Database:
 					   id = int(d[0]),
 					   db = self)
 				for d in data ]
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
+	def countFootprints(self):
+		if not self.isOpen():
+			return 0
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT COUNT(*) "
+				  "FROM footprints;")
+			data = c.fetchone()
+			if not data:
+				return 0
+			return int(data[0])
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
@@ -1463,6 +1538,21 @@ class Database:
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 
+	def countOrigins(self):
+		if not self.isOpen():
+			return 0
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT COUNT(*) "
+				  "FROM origins;")
+			data = c.fetchone()
+			if not data:
+				return 0
+			return int(data[0])
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
 	def modifyOrigin(self, origin):
 		if not self.isOpen():
 			return
@@ -1602,6 +1692,21 @@ class Database:
 					 id = int(d[0]),
 					 db = self)
 				for d in data ]
+		except (sql.Error, ValueError, TypeError) as e:
+			self.__databaseError(e)
+
+	def countStorages(self):
+		if not self.isOpen():
+			return 0
+
+		try:
+			c = self.db.cursor()
+			c.execute("SELECT COUNT(*) "
+				  "FROM storages;")
+			data = c.fetchone()
+			if not data:
+				return 0
+			return int(data[0])
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)
 

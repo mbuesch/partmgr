@@ -1,11 +1,6 @@
-__pycache__/
-*.pyc
-*.pyo
-*$py.class
-
+/.mcp.json
 /build/
 /dist/
 /venv*/
 MANIFEST
-
-*.swp
+__pycache__/

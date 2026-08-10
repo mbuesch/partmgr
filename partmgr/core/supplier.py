@@ -2,7 +2,7 @@
 #
 # PartMgr - Supplier descriptor
 #
-# Copyright 2014 Michael Buesch <m@bues.ch>
+# Copyright 2014-2026 Michael Büsch <m@bues.ch>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

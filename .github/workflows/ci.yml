@@ -1,0 +1,21 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  main:
+    name: Main
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y python3-pyqt6
+
+      - run: ./tests/run.sh
+
+# vim: ts=2 sw=2 expandtab

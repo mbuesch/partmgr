@@ -82,32 +82,23 @@ class GlobalStatsDialog(QDialog):
 		self.setWindowTitle("Parts manager - Global statistics")
 		self.setLayout(QVBoxLayout())
 
-		self.formLayout = QFormLayout()
-		self.layout().addLayout(self.formLayout)
+		self.content = QCopyLabel()
+		self.layout().addWidget(self.content)
 
 		buttonLayout = QHBoxLayout()
 		buttonLayout.addStretch()
 
-		self.updateButton = QPushButton("&Update", self)
 		self.closeButton = QPushButton("&Close", self)
-		buttonLayout.addWidget(self.updateButton)
 		buttonLayout.addWidget(self.closeButton)
 		self.layout().addLayout(buttonLayout)
 
 		self.closeButton.released.connect(self.accept)
-		self.updateButton.released.connect(self.__update)
 
-		self.resize(400, 380)
 		self.__update()
 
 	def __update(self):
 		"""Refresh the displayed statistics."""
-		# Remove existing rows.
-		while self.formLayout.rowCount() > 0:
-			self.formLayout.removeRow(0)
-
 		stats = calculateGlobalStats(self.db)
-
 		rows = (
 			("Total parts", str(stats["total_parts"])),
 			("Total stock items", str(stats["total_stock_items"])),
@@ -124,7 +115,8 @@ class GlobalStatsDialog(QDialog):
 			("Total inventory value",
 			 "%.2f %s" % (stats["total_value"], stats["currency"])),
 		)
-
-		for label, value in rows:
-			valueLabel = QCopyLabel(value, self)
-			self.formLayout.addRow(label + ":", valueLabel)
+		content = [
+			f"{label}:{'\t\t' if i == 0 else '\t'}{value}\n"
+			for (i, (label, value)) in enumerate(rows)
+		]
+		self.content.setText("".join(content))

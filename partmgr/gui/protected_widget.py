@@ -31,6 +31,7 @@ class AbstractProtectedWidget(QWidget):
 		self.label = QLabel(self)
 		self.label.setFrameShape(QFrame.Shape.Panel)
 		self.label.setFrameShadow(QFrame.Shadow.Sunken)
+		self.label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 		font = self.label.font()
 		font.setBold(True)
 		self.label.setFont(font)

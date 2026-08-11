@@ -88,6 +88,7 @@ class OriginWidget(QWidget):
 		priceLayout.addWidget(self.priceFact, 1, 1)
 
 		self.priceStamp = QLabel(self)
+		self.priceStamp.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 		font = self.priceStamp.font()
 		font.setPointSize(8)
 		self.priceStamp.setFont(font)

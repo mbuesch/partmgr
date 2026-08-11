@@ -71,6 +71,7 @@ class StockItemWidget(QWidget):
 		self.globalQuantity = QLabel(self)
 		self.globalQuantity.setFrameShape(QFrame.Shape.Panel)
 		self.globalQuantity.setFrameShadow(QFrame.Shadow.Sunken)
+		self.globalQuantity.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 		font = self.globalQuantity.font()
 		font.setBold(True)
 		self.globalQuantity.setFont(font)
@@ -98,6 +99,7 @@ class StockItemWidget(QWidget):
 		rightLayout.addWidget(self.quantityGroup, 1, 0)
 
 		self.datesLabel = QLabel(self)
+		self.datesLabel.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 		font = self.datesLabel.font()
 		font.setPointSize(8)
 		self.datesLabel.setFont(font)

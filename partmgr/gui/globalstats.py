@@ -126,7 +126,5 @@ class GlobalStatsDialog(QDialog):
 		)
 
 		for label, value in rows:
-			valueLabel = QLabel(value, self)
-			valueLabel.setTextInteractionFlags(
-				Qt.TextInteractionFlag.TextSelectableByMouse)
+			valueLabel = QCopyLabel(value, self)
 			self.formLayout.addRow(label + ":", valueLabel)

@@ -47,10 +47,10 @@ class PriceFetchDialog(QDialog):
 		self.table = QTableWidget(self)
 		self.layout().addWidget(self.table, 2, 0, 1, 4)
 
-		self.resultLine = QLabel(self)
+		self.resultLine = QCopyLabel(self)
 		self.layout().addWidget(self.resultLine, 3, 0, 1, 3)
 
-		self.statusLine = QLabel(self)
+		self.statusLine = QCopyLabel(self)
 		self.layout().addWidget(self.statusLine, 4, 0, 1, 3)
 
 		self.stopButton = QPushButton("&Stop", self)

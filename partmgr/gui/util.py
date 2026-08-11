@@ -32,3 +32,8 @@ def copyStrToClipboard(string):
 			clipboard.setText(string, clip)
 		else:
 			clipboard.clear(clip)
+
+class QCopyLabel(QLabel):
+	def __init__(self, *args, **kwargs):
+		QLabel.__init__(self, *args, **kwargs)
+		self.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)

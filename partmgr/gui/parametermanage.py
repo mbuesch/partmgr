@@ -31,7 +31,7 @@ class ParameterEditWidget(QWidget):
 		self.setLayout(QVBoxLayout(self))
 		self.layout().setContentsMargins(QMargins())
 
-		self.layout().addWidget(QLabel("Parameter value:"))
+		self.layout().addWidget(QCopyLabel("Parameter value:"))
 
 		self.combo = QComboBox(self)
 		self.layout().addWidget(self.combo)

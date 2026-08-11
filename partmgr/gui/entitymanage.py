@@ -39,7 +39,7 @@ class UserParamWidget(QWidget):
 
 		self.name = QLineEdit(self)
 		self.layout().addWidget(self.name, 0, 0)
-		label = QLabel(":", self)
+		label = QCopyLabel(":", self)
 		self.layout().addWidget(label, 0, 1)
 		self.text = QLineEdit(self)
 		self.layout().addWidget(self.text, 0, 2)
@@ -91,7 +91,7 @@ class AbstractEntityManageDialog(QDialog):
 		self.entFlags = entFlags
 		self.updateBlocked = 0
 
-		self.titleLabel = QLabel(title, self)
+		self.titleLabel = QCopyLabel(title, self)
 		self.titleLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		font = self.titleLabel.font()
 		font.setPointSize(12)
@@ -104,7 +104,7 @@ class AbstractEntityManageDialog(QDialog):
 		rightLayout = QGridLayout()
 		y = 0
 
-		self.nameLabel = QLabel("Name:")
+		self.nameLabel = QCopyLabel("Name:")
 		rightLayout.addWidget(self.nameLabel, y, 0)
 		self.nameEdit = QLineEdit(self)
 		rightLayout.addWidget(self.nameEdit, y, 1)
@@ -112,7 +112,7 @@ class AbstractEntityManageDialog(QDialog):
 		if entFlags & self.READONLY_NAME:
 			self.nameEdit.setEnabled(False)
 
-		self.descLabel = QLabel("Description:")
+		self.descLabel = QCopyLabel("Description:")
 		rightLayout.addWidget(self.descLabel, y, 0)
 		self.descEdit = QLineEdit(self)
 		rightLayout.addWidget(self.descEdit, y, 1)

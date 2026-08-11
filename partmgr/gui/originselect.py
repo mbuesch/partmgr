@@ -71,7 +71,7 @@ class OriginWidget(QWidget):
 
 		priceLayout = QGridLayout()
 
-		label = QLabel("Price:", self)
+		label = QCopyLabel("Price:", self)
 		priceLayout.addWidget(label, 0, 0)
 
 		price = origin.getPrice()
@@ -79,7 +79,7 @@ class OriginWidget(QWidget):
 		self.price.setValue(Origin.NO_PRICE if price is None else price)
 		priceLayout.addWidget(self.price, 0, 1)
 
-		label = QLabel("Factor:", self)
+		label = QCopyLabel("Factor:", self)
 		priceLayout.addWidget(label, 1, 0)
 
 		fact = origin.getPriceFact()
@@ -87,8 +87,7 @@ class OriginWidget(QWidget):
 		self.priceFact.setValue(fact)
 		priceLayout.addWidget(self.priceFact, 1, 1)
 
-		self.priceStamp = QLabel(self)
-		self.priceStamp.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+		self.priceStamp = QCopyLabel(self)
 		font = self.priceStamp.font()
 		font.setPointSize(8)
 		self.priceStamp.setFont(font)
@@ -96,7 +95,7 @@ class OriginWidget(QWidget):
 
 		self.layout().addLayout(priceLayout)
 
-		label = QLabel("Order code:", self)
+		label = QCopyLabel("Order code:", self)
 		self.layout().addWidget(label)
 
 		self.code = ProtectedLineEdit(self)

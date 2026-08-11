@@ -43,7 +43,7 @@ class ItemSelectWidget(QWidget):
 		comboLayout = QVBoxLayout()
 
 		if itemLabel:
-			self.itemLabel = QLabel(itemLabel, self)
+			self.itemLabel = QCopyLabel(itemLabel, self)
 			comboLayout.addWidget(self.itemLabel)
 
 		self.combo = EntityComboBox(self)
@@ -70,7 +70,7 @@ class ItemSelectWidget(QWidget):
 			self.actionButton.released.connect(
 					self.actionButtonPressed)
 
-		self.descLabel = QLabel(self)
+		self.descLabel = QCopyLabel(self)
 		self.descLabel.hide()
 		self.layout().addWidget(self.descLabel, 1, 0, 1, x)
 

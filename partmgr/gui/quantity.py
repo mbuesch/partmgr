@@ -39,7 +39,7 @@ class QuantityWidget(QWidget):
 		self.setLayout(QVBoxLayout(self))
 		self.layout().setContentsMargins(QMargins())
 
-		label = QLabel("Quantity:", self)
+		label = QCopyLabel("Quantity:", self)
 		self.layout().addWidget(label)
 
 		self.quantity = QuantitySpinBox(self)

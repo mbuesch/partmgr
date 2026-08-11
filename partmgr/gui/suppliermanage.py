@@ -31,7 +31,7 @@ class SupplierEditWidget(QWidget):
 		self.setLayout(QGridLayout(self))
 		self.layout().setContentsMargins(QMargins())
 
-		label = QLabel("URL:", self)
+		label = QCopyLabel("URL:", self)
 		self.layout().addWidget(label, 0, 0)
 
 		self.urlEdit = QLineEdit(self)

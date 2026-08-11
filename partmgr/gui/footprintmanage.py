@@ -32,7 +32,7 @@ class FootprintEditWidget(QWidget):
 		self.setLayout(QGridLayout(self))
 		self.layout().setContentsMargins(QMargins())
 
-		self.imageLabel = QLabel(self)
+		self.imageLabel = QCopyLabel(self)
 		self.imageLabel.setFrameShape(QFrame.Shape.Panel)
 		self.imageLabel.setFrameShadow(QFrame.Shadow.Raised)
 		self.imageLabel.setMinimumSize(QSize(50, 50))

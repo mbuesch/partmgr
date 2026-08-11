@@ -118,7 +118,6 @@ class Database:
 					"partmgr_db_version")
 				ver = ver.getDataInt() if ver else None
 				if ver is None or ver < 0 or ver > self.DB_VERSION:
-					self.filename = None
 					raise PartMgrError("Invalid database "
 						    "version")
 				if ver == 0:
@@ -126,7 +125,6 @@ class Database:
 			if empty:
 				self.__setUserParameterDefaults()
 		except (sql.Error, ValueError, TypeError) as e:
-			self.filename = None
 			self.__databaseError(e)
 
 	def __eq__(self, other):

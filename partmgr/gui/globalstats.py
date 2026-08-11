@@ -100,20 +100,16 @@ class GlobalStatsDialog(QDialog):
 		"""Refresh the displayed statistics."""
 		stats = calculateGlobalStats(self.db)
 		rows = (
-			("Total parts", str(stats["total_parts"])),
-			("Total stock items", str(stats["total_stock_items"])),
-			("Total categories", str(stats["total_categories"])),
-			("Total suppliers", str(stats["total_suppliers"])),
-			("Total locations", str(stats["total_locations"])),
-			("Total footprints", str(stats["total_footprints"])),
-			("Total quantity in stock",
-			 "%d" % stats["total_quantity"]),
-			("Items missing price",
-			 "%d" % stats["items_missing_price"]),
-			("Items to order",
-			 "%d" % stats["items_to_order"]),
-			("Total inventory value",
-			 "%.2f %s" % (stats["total_value"], stats["currency"])),
+			("Total parts", "%d" % stats["total_parts"]),
+			("Total stock items", "%d" % stats["total_stock_items"]),
+			("Total categories", "%d" % stats["total_categories"]),
+			("Total suppliers", "%d" % stats["total_suppliers"]),
+			("Total locations", "%d" % stats["total_locations"]),
+			("Total footprints", "%d" % stats["total_footprints"]),
+			("Total quantity in stock", "%d" % stats["total_quantity"]),
+			("Items missing price", "%d" % stats["items_missing_price"]),
+			("Items to order", "%d" % stats["items_to_order"]),
+			("Total inventory value", "%.2f %s" % (stats["total_value"], stats["currency"])),
 		)
 		content = [
 			f"{label}:{'\t\t' if i == 0 else '\t'}{value}\n"

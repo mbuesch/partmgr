@@ -232,6 +232,7 @@ class Database:
 		self.__commit()
 
 		c.execute("VACUUM;")
+		c.execute("ANALYZE;")
 		self.__commit()
 
 	def __databaseError(self, exception):
@@ -298,8 +299,7 @@ class Database:
 	def __sqlIsEmpty(self):
 		try:
 			c = self.db.cursor()
-			c.execute("ANALYZE;")
-			c.execute("SELECT tbl FROM sqlite_stat1;")
+			c.execute("SELECT name FROM sqlite_schema WHERE type='table';")
 			return not bool(c.fetchone())
 		except (sql.Error, ValueError, TypeError) as e:
 			self.__databaseError(e)

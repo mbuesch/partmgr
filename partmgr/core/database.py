@@ -106,7 +106,8 @@ class Database:
 			self.db = sql.connect(str(filename))
 			self.db.text_factory = str
 			self.filename = filename
-			if self.__sqlIsEmpty():
+			empty = self.__sqlIsEmpty()
+			if empty:
 				# This is an empty database
 				self.__initTables()
 				ver = Parameter("partmgr_db_version",
@@ -122,7 +123,8 @@ class Database:
 						    "version")
 				if ver == 0:
 					self.__upgrade_0to1() # Upgrade DB version to 1.
-			self.__setUserParameterDefaults()
+			if empty:
+				self.__setUserParameterDefaults()
 		except (sql.Error, ValueError, TypeError) as e:
 			self.filename = None
 			self.__databaseError(e)
